@@ -194,6 +194,21 @@ class SessionRepo:
             ).fetchall()
         return [_row_to_session(r) for r in rows]
 
+    def _sync_list_stages(self, session_id: str) -> list[StageRow]:
+        rows = self._conn.execute(
+            "SELECT * FROM stages WHERE session_id = ? ORDER BY stage_no",
+            (session_id,),
+        ).fetchall()
+        return [_row_to_stage(r) for r in rows]
+
+    def _sync_update_session_status(self, session_id: str, status: str) -> None:
+        now = time.time()
+        self._conn.execute(
+            "UPDATE sessions SET status = ?, updated_at = ? WHERE id = ?",
+            (status, now, session_id),
+        )
+        self._conn.commit()
+
     def _sync_update_stage(self, stage_id: str, fields: dict[str, object]) -> None:
         if not fields:
             return
@@ -292,6 +307,16 @@ class SessionRepo:
     async def list_sessions(self, status: Optional[str] = None) -> list[SessionRow]:
         return await anyio.to_thread.run_sync(
             lambda: self._sync_list_sessions(status)
+        )
+
+    async def list_stages(self, session_id: str) -> list[StageRow]:
+        return await anyio.to_thread.run_sync(
+            lambda: self._sync_list_stages(session_id)
+        )
+
+    async def update_session_status(self, session_id: str, status: str) -> None:
+        await anyio.to_thread.run_sync(
+            lambda: self._sync_update_session_status(session_id, status)
         )
 
     async def update_stage(self, stage_id: str, **fields: object) -> None:
