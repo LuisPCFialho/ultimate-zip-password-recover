@@ -21,8 +21,15 @@ log = get_logger(__name__)
 
 # 95 printable ASCII characters (?a charset)
 _CHARSET_SIZE = 95
-# Default CPS when no capability probe data is available
-_DEFAULT_CPS = 1_000_000.0
+# Default CPS when no capability probe data is available.
+# Conservative-but-realistic for a modern GPU on the slowest supported mode
+# (WinZip AES-256, hashcat -m 13600 with -O). Faster modes (ZipCrypto) go
+# orders of magnitude quicker, so this only ever under-promises.
+_DEFAULT_CPS = 3_000_000.0
+# Keyspace small enough to always attempt as a last resort, regardless of the
+# budget estimate. ~half a billion candidates finishes in a couple of minutes
+# even on the slowest mode/GPU, so it is always worth trying before giving up.
+_ALWAYS_TRY_KEYSPACE = 500_000_000
 # Maximum length hashcat supports for incremental masks
 _MAX_MASK_LEN = 16
 
@@ -70,7 +77,12 @@ def _pick_max_length(
     cps: float,
     budget_seconds: float,
 ) -> int:
-    """Return the largest length N where 95^N / cps <= budget_seconds."""
+    """Return the largest length N where 95^N / cps <= budget_seconds.
+
+    As a last resort, always include ``min_len`` when its keyspace is small
+    enough to finish in a couple of minutes, even if the budget estimate says
+    no — short passwords are exactly what brute force is for.
+    """
     chosen = min_len - 1
     for n in range(min_len, min(max_len, _MAX_MASK_LEN) + 1):
         ks = _CHARSET_SIZE**n
@@ -78,6 +90,9 @@ def _pick_max_length(
             chosen = n
         else:
             break
+    # Floor: always attempt min_len if its keyspace is cheap enough.
+    if chosen < min_len and _CHARSET_SIZE**min_len <= _ALWAYS_TRY_KEYSPACE:
+        chosen = min_len
     return chosen
 
 
