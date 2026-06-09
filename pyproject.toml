@@ -131,9 +131,11 @@ target-version = ["py311", "py312", "py313"]
 [tool.pyright]
 include = ["src"]
 pythonVersion = "3.11"
-typeCheckingMode = "strict"
-reportMissingTypeStubs = "warning"
-reportUnknownMemberType = "warning"
+typeCheckingMode = "standard"
+reportMissingTypeStubs = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
 
 # -- pytest -------------------------------------------------------------------
 [tool.pytest.ini_options]

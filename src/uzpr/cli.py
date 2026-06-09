@@ -88,10 +88,18 @@ async def _run_crack(
         stems=stems,
     )
 
-    app = await build_application()
+    orchestrator = build_application()
 
-    session_id = await app.repo.create_session(
-        archive_info=app.archive_detector.detect(archive),
+    from uzpr.archive.detect import detect_archive
+    from uzpr.util.paths import db_path
+
+    archive_info = detect_archive(archive)
+
+    from uzpr.persistence.repo import SessionRepo
+
+    repo = SessionRepo(db_path=db_path())
+    session_id = await repo.create_session(
+        archive_info=archive_info,
         hints=hints,
         total_budget_s=float(budget),
         gpu_low_power=low_power,
@@ -103,7 +111,7 @@ async def _run_crack(
     async def on_event(event: object) -> None:
         on_event_sync(event)
 
-    result = await app.orchestrator.run_session(session_id, on_event)
+    result = await orchestrator.run_session(session_id, on_event)
 
     if result.password:
         click.echo(result.password)
