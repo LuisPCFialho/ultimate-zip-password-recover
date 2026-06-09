@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a feature or enhancement
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      placeholder: When I try to recover a password and only remember...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      placeholder: Add a stage that...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How blocking is this for you?
+      options:
+        - Nice to have
+        - Would help a lot
+        - Blocking my use of the tool

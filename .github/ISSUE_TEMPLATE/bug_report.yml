@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a bug or unexpected behavior
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please include enough detail to reproduce.
+        **Do not include passwords or archive contents** in this report.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: When I selected a RAR5 file, the app...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: I expected the cascade to start with...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Launch the app
+        2. Drag a RAR5 archive
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU (if relevant)
+      placeholder: "NVIDIA RTX 4070 SUPER"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Logs are at %APPDATA%\UZPR\logs\
+      render: shell
