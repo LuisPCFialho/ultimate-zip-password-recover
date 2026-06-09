@@ -220,6 +220,20 @@ async def generate(
                 if count % 10_000 == 0:
                     await asyncio.sleep(0)
 
+        # C3: date_frag + all 4-digit numbers (0000-9999)
+        # Catches patterns like "050196" + "1423" from date+pin/suffix combos.
+        # ~10k candidates per date fragment — manageable and high-value.
+        for frag in date_frags:
+            if count >= cap or tier_c_count >= tier_c_limit:
+                break
+            for n in range(10000):
+                if count >= cap or tier_c_count >= tier_c_limit:
+                    break
+                if await _emit(frag + f"{n:04d}"):
+                    tier_c_count += 1
+                if count % 10_000 == 0:
+                    await asyncio.sleep(0)
+
         # ------------------------------------------------------------------ #
         # Tier D: leet variants + double-seed concat + symbol injection
         # ------------------------------------------------------------------ #

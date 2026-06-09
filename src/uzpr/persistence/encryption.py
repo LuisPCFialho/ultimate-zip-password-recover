@@ -8,8 +8,9 @@ def dpapi_encrypt(plaintext: bytes) -> bytes:
     try:
         import win32crypt
 
-        _desc, ciphertext = win32crypt.CryptProtectData(plaintext, None, None, None, None, 0)
-        return ciphertext
+        result = win32crypt.CryptProtectData(plaintext, None, None, None, None, 0)
+        # pywin32 >= 228 returns bytes directly; older versions return (desc, bytes)
+        return result if isinstance(result, bytes) else result[1]
     except ImportError:
         return _fernet_encrypt(plaintext)
 
@@ -19,8 +20,8 @@ def dpapi_decrypt(ciphertext: bytes) -> bytes:
     try:
         import win32crypt
 
-        _desc, plaintext = win32crypt.CryptUnprotectData(ciphertext, None, None, None, 0)
-        return plaintext
+        result = win32crypt.CryptUnprotectData(ciphertext, None, None, None, 0)
+        return result if isinstance(result, bytes) else result[1]
     except ImportError:
         return _fernet_decrypt(ciphertext)
 

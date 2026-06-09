@@ -64,8 +64,8 @@ class BkcrackRunner:
         proc = await open_managed_process(
             argv,
             cwd=self._work_dir,
-            stdout=anyio.abc.ByteStream,  # type: ignore[arg-type]
-            stderr=anyio.abc.ByteStream,  # type: ignore[arg-type]
+            stdout=__import__("subprocess").PIPE,
+            stderr=__import__("subprocess").PIPE,
         )
 
         keys: tuple[int, int, int] | None = None
@@ -176,8 +176,8 @@ class BkcrackRunner:
         proc = await open_managed_process(
             argv,
             cwd=self._work_dir,
-            stdout=anyio.abc.ByteStream,  # type: ignore[arg-type]
-            stderr=anyio.abc.ByteStream,  # type: ignore[arg-type]
+            stdout=__import__("subprocess").PIPE,
+            stderr=__import__("subprocess").PIPE,
         )
 
         found_password: str | None = None

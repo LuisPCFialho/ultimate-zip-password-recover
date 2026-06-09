@@ -65,12 +65,17 @@ class HashcatRunner:
         start = time.time()
         stats = StageStats()
 
+        import subprocess as _sp
+
+        # hashcat must run from its own directory so it can find OpenCL/ kernels
+        hashcat_dir = self._binary.parent
+
         self._proc = await open_managed_process(
             argv,
-            cwd=self._work_dir,
-            stdout=anyio.abc.ByteStream,  # type: ignore[arg-type]
-            stderr=None,
-            stdin=anyio.abc.ByteStream,  # type: ignore[arg-type]
+            cwd=hashcat_dir,
+            stdout=_sp.PIPE,
+            stderr=_sp.DEVNULL,
+            stdin=_sp.PIPE,
         )
         proc = self._proc
 
@@ -147,12 +152,14 @@ class HashcatRunner:
         start = time.time()
         stats = StageStats()
 
+        import subprocess as _sp
+
         self._proc = await open_managed_process(
             argv,
             cwd=self._work_dir,
-            stdout=anyio.abc.ByteStream,  # type: ignore[arg-type]
-            stderr=None,
-            stdin=anyio.abc.ByteStream,  # type: ignore[arg-type]
+            stdout=_sp.PIPE,
+            stderr=_sp.DEVNULL,
+            stdin=_sp.PIPE,
         )
         proc = self._proc
 

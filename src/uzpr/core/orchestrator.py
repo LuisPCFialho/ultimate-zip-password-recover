@@ -91,6 +91,21 @@ class Orchestrator:
             if not hash_file.exists():
                 hash_file = await self._extract_hash(archive_path, work_dir)
 
+            # Compute hashcat mode from hash file if not yet stored in session.
+            hashcat_mode = session.hashcat_mode
+            if hashcat_mode is None and hash_file.exists() and hash_file.stat().st_size > 0:
+                try:
+                    from uzpr.archive.detect import detect_archive
+                    from uzpr.archive.hashcat_mode import hashcat_mode_for
+
+                    archive_info = detect_archive(archive_path)
+                    hashcat_mode = hashcat_mode_for(archive_info, hash_file)
+                    if hashcat_mode is not None:
+                        await self._repo.update_session_hashcat_mode(session_id, hashcat_mode)
+                        log.info("hashcat_mode_detected", mode=hashcat_mode, session_id=session_id)
+                except Exception as exc:
+                    log.warning("hashcat_mode_detection_failed", error=str(exc))
+
             stage_id = f"{session_id}_{stage.stage_no}" if row is None else row.id
 
             restore_token: str | None = row.restore_token if row is not None else None
@@ -102,7 +117,7 @@ class Orchestrator:
                 archive_path=archive_path,
                 hash_file=hash_file,
                 archive_format=session.archive_format,
-                hashcat_mode=session.hashcat_mode,
+                hashcat_mode=hashcat_mode,
                 hints=hints,
                 budget_seconds=budget,
                 work_dir=work_dir,
@@ -285,8 +300,45 @@ class Orchestrator:
                 [str(tool), str(archive_path)],
                 check=False,
             )
-            hash_file.write_bytes(result.stdout)
-            log.info("hash_extracted", archive=str(archive_path), hash_file=str(hash_file))
+            raw = result.stdout.decode(errors="replace")
+            # zip2john / rar2john output lines are: filename:HASH[:extra:fields]
+            # hashcat only accepts the HASH part — strip prefix and trailing fields.
+            cleaned_lines = []
+            for line in raw.splitlines():
+                line = line.strip()
+                if not line or ":" not in line:
+                    continue
+                parts = line.split(":", 1)
+                if len(parts) < 2:
+                    continue
+                hash_part = parts[1]
+                # For $zip2$: the hash ends at *$/zip2$, strip trailing fields
+                if "$zip2$" in hash_part:
+                    end = hash_part.find("*$/zip2$")
+                    if end != -1:
+                        hash_part = hash_part[: end + 8]
+                # For $pkzip2$ or $pkzip$: the hash is self-contained, strip trailing :fields
+                elif "$pkzip" in hash_part:
+                    # Find the closing $*/pkzip2$ marker or $*/pkzip$
+                    for marker in ("*$/pkzip2$", "*$/pkzip$"):
+                        end = hash_part.find(marker)
+                        if end != -1:
+                            hash_part = hash_part[: end + len(marker)]
+                            break
+                # For RAR: $RAR3$ and $rar5$ are already clean
+                if hash_part.startswith("$"):
+                    cleaned_lines.append(hash_part)
+            if cleaned_lines:
+                hash_file.write_text("\n".join(cleaned_lines) + "\n", encoding="utf-8")
+            else:
+                # Fallback: write raw and let hashcat try
+                hash_file.write_bytes(result.stdout)
+            log.info(
+                "hash_extracted",
+                archive=str(archive_path),
+                hash_file=str(hash_file),
+                lines=len(cleaned_lines),
+            )
         except Exception as exc:
             log.error("hash_extraction_failed", archive=str(archive_path), error=str(exc))
 

@@ -306,6 +306,18 @@ class SessionRepo:
     async def update_session_status(self, session_id: str, status: str) -> None:
         await anyio.to_thread.run_sync(lambda: self._sync_update_session_status(session_id, status))
 
+    async def update_session_hashcat_mode(self, session_id: str, mode: int) -> None:
+        """Persist the detected hashcat mode after hash extraction."""
+        await anyio.to_thread.run_sync(
+            lambda: (
+                self._conn.execute(
+                    "UPDATE sessions SET hashcat_mode = ?, updated_at = ? WHERE id = ?",
+                    (mode, __import__("time").time(), session_id),
+                )
+                or self._conn.commit()
+            )
+        )
+
     async def update_stage(self, stage_id: str, **fields: object) -> None:
         await anyio.to_thread.run_sync(lambda: self._sync_update_stage(stage_id, dict(fields)))
 

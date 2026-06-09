@@ -70,8 +70,8 @@ class JohnRunner:
         self._proc = await open_managed_process(
             argv,
             cwd=self._john_run_dir,
-            stdout=anyio.abc.ByteStream,  # type: ignore[arg-type]
-            stderr=anyio.abc.ByteStream,  # type: ignore[arg-type]
+            stdout=__import__("subprocess").PIPE,
+            stderr=__import__("subprocess").PIPE,
         )
         proc = self._proc
 
@@ -132,8 +132,8 @@ class JohnRunner:
         self._proc = await open_managed_process(
             argv,
             cwd=self._john_run_dir,
-            stdout=anyio.abc.ByteStream,  # type: ignore[arg-type]
-            stderr=anyio.abc.ByteStream,  # type: ignore[arg-type]
+            stdout=__import__("subprocess").PIPE,
+            stderr=__import__("subprocess").PIPE,
         )
         proc = self._proc
 
