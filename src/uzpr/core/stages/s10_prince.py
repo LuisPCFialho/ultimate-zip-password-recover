@@ -58,12 +58,7 @@ class PrinceStage:
 
     async def prepare(self, ctx: StageContext) -> StagePlan:
         hints = ctx.hints
-        has_content = bool(
-            hints.stems
-            or hints.first_names
-            or hints.nicknames
-            or hints.pet_names
-        )
+        has_content = bool(hints.stems or hints.first_names or hints.nicknames or hints.pet_names)
         if not has_content:
             return _SKIPPED_PLAN
 
@@ -80,12 +75,7 @@ class PrinceStage:
         start = time.monotonic()
 
         hints = ctx.hints
-        has_content = bool(
-            hints.stems
-            or hints.first_names
-            or hints.nicknames
-            or hints.pet_names
-        )
+        has_content = bool(hints.stems or hints.first_names or hints.nicknames or hints.pet_names)
         if not has_content:
             return StageResult(
                 outcome=StageOutcome.SKIPPED,
@@ -220,10 +210,12 @@ async def _run_prince_pipeline(
     work_dir = ctx.work_dir
     hc_argv = [
         str(hashcat_binary),
-        "-m", str(ctx.hashcat_mode),
-        "-a", "0",
+        "-m",
+        str(ctx.hashcat_mode),
+        "-a",
+        "0",
         str(ctx.hash_file),
-        "-",                          # read candidates from stdin
+        "-",  # read candidates from stdin
         "--quiet",
         "--status",
         "--status-json",

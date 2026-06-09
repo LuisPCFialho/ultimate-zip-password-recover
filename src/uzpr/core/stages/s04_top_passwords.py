@@ -24,16 +24,56 @@ log = get_logger(__name__)
 
 # Fallback list of 50 common passwords used when top10k.txt is not installed
 _FALLBACK_PASSWORDS: tuple[str, ...] = (
-    "123456", "password", "12345678", "qwerty", "123456789",
-    "12345", "1234", "111111", "1234567", "dragon",
-    "123123", "baseball", "iloveyou", "trustno1", "sunshine",
-    "master", "welcome", "shadow", "ashley", "football",
-    "jesus", "michael", "ninja", "mustang", "password1",
-    "123", "abc123", "letmein", "monkey", "1234567890",
-    "superman", "batman", "admin", "pass", "login",
-    "hello", "charlie", "donald", "password123", "qwerty123",
-    "princess", "solo", "passw0rd", "starwars", "whatever",
-    "cheese", "computer", "liverpool", "hannah", "jessica",
+    "123456",
+    "password",
+    "12345678",
+    "qwerty",
+    "123456789",
+    "12345",
+    "1234",
+    "111111",
+    "1234567",
+    "dragon",
+    "123123",
+    "baseball",
+    "iloveyou",
+    "trustno1",
+    "sunshine",
+    "master",
+    "welcome",
+    "shadow",
+    "ashley",
+    "football",
+    "jesus",
+    "michael",
+    "ninja",
+    "mustang",
+    "password1",
+    "123",
+    "abc123",
+    "letmein",
+    "monkey",
+    "1234567890",
+    "superman",
+    "batman",
+    "admin",
+    "pass",
+    "login",
+    "hello",
+    "charlie",
+    "donald",
+    "password123",
+    "qwerty123",
+    "princess",
+    "solo",
+    "passw0rd",
+    "starwars",
+    "whatever",
+    "cheese",
+    "computer",
+    "liverpool",
+    "hannah",
+    "jessica",
 )
 
 
@@ -86,7 +126,9 @@ class TopPasswordsStage:
                 binary = find_tool("hashcat")
                 await _run_hashcat(binary, top10k_path)
             except ToolNotFoundError:
-                log.warning("hashcat not available; falling back to native verifier for top passwords")
+                log.warning(
+                    "hashcat not available; falling back to native verifier for top passwords"
+                )
                 await _run_native(top10k_path)
 
         async def _run_hashcat(binary: Path, wordlist: Path | None) -> None:

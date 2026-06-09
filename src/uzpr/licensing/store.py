@@ -13,10 +13,7 @@ _DEFAULT_FILENAME = "license.bin"
 
 
 def _default_store_path() -> Path:
-    return (
-        Path(platformdirs.user_data_dir("UltimateZipPasswordRecover", False))
-        / _DEFAULT_FILENAME
-    )
+    return Path(platformdirs.user_data_dir("UltimateZipPasswordRecover", False)) / _DEFAULT_FILENAME
 
 
 class LicenseStore:

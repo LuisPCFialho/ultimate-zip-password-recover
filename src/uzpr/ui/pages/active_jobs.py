@@ -36,6 +36,7 @@ except ImportError:
     from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
+
     InfoBar = None  # type: ignore[assignment,misc]
     InfoBarPosition = None  # type: ignore[assignment,misc]
     from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
@@ -51,13 +52,13 @@ if TYPE_CHECKING:
     from uzpr.ui.async_bridge import EventCoalescer
 
 _STATUS_COLORS: dict[str, str] = {
-    "pending":   "#7A7A84",
-    "running":   "#3B82F6",
-    "paused":    "#F59E0B",
-    "found":     "#22C55E",
+    "pending": "#7A7A84",
+    "running": "#3B82F6",
+    "paused": "#F59E0B",
+    "found": "#22C55E",
     "exhausted": "#F97316",
     "cancelled": "#EF4444",
-    "failed":    "#EF4444",
+    "failed": "#EF4444",
 }
 
 _SPARKLINE_HISTORY = 600  # 60 s at 10 Hz
@@ -373,7 +374,7 @@ class ActiveJobsPage(QWidget):
         if InfoBar is not None:
             InfoBar.success(
                 title="Password Found!",
-                content=f'The password is: {password}',
+                content=f"The password is: {password}",
                 parent=self,
                 position=InfoBarPosition.BOTTOM_RIGHT,
                 duration=8000,

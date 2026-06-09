@@ -18,9 +18,7 @@ _ZIP_MAGIC = b"PK\x03\x04"
 
 # Regex patterns for bkcrack output
 _PROGRESS_RE = re.compile(r"(\d+\.\d+)%")
-_KEYS_RE = re.compile(
-    r"Keys:\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)"
-)
+_KEYS_RE = re.compile(r"Keys:\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)")
 _PASSWORD_RE = re.compile(r"Password:\s+(.+)")
 
 
@@ -50,8 +48,10 @@ class BkcrackRunner:
         plain_args = _build_plain_args(plain, entry)
         argv = [
             str(self._binary),
-            "-C", str(archive),
-            "-c", entry,
+            "-C",
+            str(archive),
+            "-c",
+            entry,
             *plain_args,
         ]
         log.info(
@@ -130,17 +130,20 @@ class BkcrackRunner:
         k0, k1, k2 = keys
         argv = [
             str(self._binary),
-            "-C", str(archive),
-            "-k", hex(k0), hex(k1), hex(k2),
-            "-D", str(out),
+            "-C",
+            str(archive),
+            "-k",
+            hex(k0),
+            hex(k1),
+            hex(k2),
+            "-D",
+            str(out),
         ]
         log.info("bkcrack_decrypt", archive=str(archive), out=str(out))
         result = await anyio.run_process(argv, cwd=self._work_dir, check=False)
         if result.returncode != 0:
             stderr = result.stderr.decode(errors="replace").strip()
-            raise RuntimeError(
-                f"bkcrack decrypt failed (rc={result.returncode}): {stderr}"
-            )
+            raise RuntimeError(f"bkcrack decrypt failed (rc={result.returncode}): {stderr}")
 
     async def recover_password(
         self,
@@ -156,8 +159,12 @@ class BkcrackRunner:
         lo, hi = length_range
         argv = [
             str(self._binary),
-            "-k", hex(k0), hex(k1), hex(k2),
-            "-r", f"{lo}..{hi}",
+            "-k",
+            hex(k0),
+            hex(k1),
+            hex(k2),
+            "-r",
+            f"{lo}..{hi}",
             "?p",
         ]
         log.info(
@@ -219,6 +226,7 @@ class BkcrackRunner:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _is_zip(path: Path) -> bool:
     """Return True if the file starts with the ZIP local file magic bytes."""

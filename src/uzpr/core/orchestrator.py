@@ -64,7 +64,8 @@ class Orchestrator:
 
         # Determine which stage_nos are still pending/paused.
         remaining_stage_nos = [
-            s.stage_no for s in self._stages
+            s.stage_no
+            for s in self._stages
             if row_by_no.get(s.stage_no) is None
             or row_by_no[s.stage_no].status not in ("found", "exhausted", "skipped")
         ]

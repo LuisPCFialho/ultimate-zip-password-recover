@@ -28,7 +28,7 @@ class BloomFilter:
         """
         ln2 = math.log(2)
         # Optimal bit-array size: m = -n * ln(p) / (ln2)^2
-        m_bits = math.ceil(-capacity * math.log(fp_rate) / (ln2 ** 2))
+        m_bits = math.ceil(-capacity * math.log(fp_rate) / (ln2**2))
         # Optimal number of hash functions: k = (m / n) * ln2
         self._k = max(1, round((m_bits / capacity) * ln2))
         self._m = m_bits
@@ -126,10 +126,7 @@ class TriedCandidateStore:
             stage_no: Stage number that generated these candidates.
         """
         now = time.time()
-        rows = [
-            (blake3_trunc16(c), stage_no, now)
-            for c in candidates
-        ]
+        rows = [(blake3_trunc16(c), stage_no, now) for c in candidates]
         self._conn.executemany(
             "INSERT OR IGNORE INTO tried_candidates (hash_blake3, first_seen_stage, ts) "
             "VALUES (?, ?, ?)",

@@ -5,6 +5,7 @@ from pathlib import Path
 
 try:
     import blake3 as _blake3  # type: ignore[import-untyped]
+
     _HAS_BLAKE3 = True
 except ImportError:  # pragma: no cover
     _blake3 = None  # type: ignore[assignment]

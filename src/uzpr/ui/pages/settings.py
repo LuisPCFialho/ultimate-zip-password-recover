@@ -143,9 +143,7 @@ class SettingsPage(ScrollArea):
         )
 
         cpu_count = psutil.cpu_count(logical=True) or 1
-        cpu_label = BodyLabel(
-            f"CPU threads: {cpu_count} logical cores (psutil.cpu_count)", group
-        )
+        cpu_label = BodyLabel(f"CPU threads: {cpu_count} logical cores (psutil.cpu_count)", group)
 
         group.addSettingCard(self._low_power_card)
         group.addSettingCard(self._gpu_combo_card)
@@ -240,9 +238,7 @@ class SettingsPage(ScrollArea):
             self._settings.get("john_path") or "Not configured",
             group,
         )
-        self._john_card.clicked.connect(
-            lambda: self._browse_tool("john_path", self._john_card)
-        )
+        self._john_card.clicked.connect(lambda: self._browse_tool("john_path", self._john_card))
 
         self._bkcrack_card = PushSettingCard(
             "Browse",
@@ -307,9 +303,7 @@ class SettingsPage(ScrollArea):
         return group
 
     def _on_activate(self) -> None:
-        key, ok = QInputDialog.getText(
-            self, "Activate license", "Enter license key:"
-        )
+        key, ok = QInputDialog.getText(self, "Activate license", "Enter license key:")
         if ok and key.strip():
             self._settings["license_key"] = key.strip()
             self._license_label.setText("Status: Activated")

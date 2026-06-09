@@ -20,19 +20,19 @@ from uzpr.persistence.models import (
 # budget_fraction: 0 means free/zero-cost stage; positive fractions must sum to 1.0
 # Stages 4-12 split the paid time pool equally (9 stages, each gets 1/9).
 _STAGE_DEFAULTS: tuple[tuple[int, str, str, float, float], ...] = (
-    (1,  "known-password",      "native",  1.0, 0.0),
-    (2,  "partial-mask",        "hashcat", 0.7, 0.0),
-    (3,  "generated-wordlist",  "hashcat", 0.4, 0.0),
-    (4,  "rockyou-straight",    "hashcat", 0.35, 1 / 9),
-    (5,  "rockyou-rules",       "hashcat", 0.30, 1 / 9),
-    (6,  "masks-brute",         "hashcat", 0.25, 1 / 9),
-    (7,  "prince-stems",        "hashcat", 0.20, 1 / 9),
-    (8,  "john-incremental",    "john",    0.15, 1 / 9),
-    (9,  "hybrid-wl-mask",      "hashcat", 0.12, 1 / 9),
-    (10, "hybrid-mask-wl",      "hashcat", 0.10, 1 / 9),
-    (11, "combinator",          "hashcat", 0.08, 1 / 9),
-    (12, "targeted-brute",      "hashcat", 0.06, 1 / 9),
-    (13, "bkcrack-plaintext",   "bkcrack", 1.0, 0.0),
+    (1, "known-password", "native", 1.0, 0.0),
+    (2, "partial-mask", "hashcat", 0.7, 0.0),
+    (3, "generated-wordlist", "hashcat", 0.4, 0.0),
+    (4, "rockyou-straight", "hashcat", 0.35, 1 / 9),
+    (5, "rockyou-rules", "hashcat", 0.30, 1 / 9),
+    (6, "masks-brute", "hashcat", 0.25, 1 / 9),
+    (7, "prince-stems", "hashcat", 0.20, 1 / 9),
+    (8, "john-incremental", "john", 0.15, 1 / 9),
+    (9, "hybrid-wl-mask", "hashcat", 0.12, 1 / 9),
+    (10, "hybrid-mask-wl", "hashcat", 0.10, 1 / 9),
+    (11, "combinator", "hashcat", 0.08, 1 / 9),
+    (12, "targeted-brute", "hashcat", 0.06, 1 / 9),
+    (13, "bkcrack-plaintext", "bkcrack", 1.0, 0.0),
 )
 
 
@@ -89,10 +89,7 @@ class SessionRepo:
 
     def _apply_migrations(self) -> None:
         conn = self._conn
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS schema_versions "
-            "(filename TEXT PRIMARY KEY)"
-        )
+        conn.execute("CREATE TABLE IF NOT EXISTS schema_versions (filename TEXT PRIMARY KEY)")
         conn.commit()
         migrations_dir = Path(__file__).parent / "migrations"
         sql_files = sorted(migrations_dir.glob("*.sql"))
@@ -116,9 +113,7 @@ class SessionRepo:
             for pragma in pragma_lines:
                 conn.execute(pragma)
             conn.executescript("\n".join(statement_lines))
-            conn.execute(
-                "INSERT INTO schema_versions (filename) VALUES (?)", (filename,)
-            )
+            conn.execute("INSERT INTO schema_versions (filename) VALUES (?)", (filename,))
             conn.commit()
 
     # ------------------------------------------------------------------
@@ -175,9 +170,7 @@ class SessionRepo:
         return session_id
 
     def _sync_get_session(self, session_id: str) -> SessionRow:
-        row = self._conn.execute(
-            "SELECT * FROM sessions WHERE id = ?", (session_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
         if row is None:
             raise KeyError(f"Session not found: {session_id}")
         return _row_to_session(row)
@@ -211,9 +204,7 @@ class SessionRepo:
             return
         set_clause = ", ".join(f"{k} = ?" for k in fields)
         values = [*list(fields.values()), stage_id]
-        self._conn.execute(
-            f"UPDATE stages SET {set_clause} WHERE id = ?", values
-        )
+        self._conn.execute(f"UPDATE stages SET {set_clause} WHERE id = ?", values)
         self._conn.commit()
 
     def _sync_record_attempt(
@@ -237,8 +228,15 @@ class SessionRepo:
                  outcome, candidates_tested, peak_rate)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (stage_row["session_id"], stage_id, started_at, ended_at,
-             outcome, candidates, peak_rate),
+            (
+                stage_row["session_id"],
+                stage_id,
+                started_at,
+                ended_at,
+                outcome,
+                candidates,
+                peak_rate,
+            ),
         )
         self._conn.commit()
 
@@ -297,29 +295,19 @@ class SessionRepo:
         )
 
     async def get_session(self, session_id: str) -> SessionRow:
-        return await anyio.to_thread.run_sync(
-            lambda: self._sync_get_session(session_id)
-        )
+        return await anyio.to_thread.run_sync(lambda: self._sync_get_session(session_id))
 
     async def list_sessions(self, status: str | None = None) -> list[SessionRow]:
-        return await anyio.to_thread.run_sync(
-            lambda: self._sync_list_sessions(status)
-        )
+        return await anyio.to_thread.run_sync(lambda: self._sync_list_sessions(status))
 
     async def list_stages(self, session_id: str) -> list[StageRow]:
-        return await anyio.to_thread.run_sync(
-            lambda: self._sync_list_stages(session_id)
-        )
+        return await anyio.to_thread.run_sync(lambda: self._sync_list_stages(session_id))
 
     async def update_session_status(self, session_id: str, status: str) -> None:
-        await anyio.to_thread.run_sync(
-            lambda: self._sync_update_session_status(session_id, status)
-        )
+        await anyio.to_thread.run_sync(lambda: self._sync_update_session_status(session_id, status))
 
     async def update_stage(self, stage_id: str, **fields: object) -> None:
-        await anyio.to_thread.run_sync(
-            lambda: self._sync_update_stage(stage_id, dict(fields))
-        )
+        await anyio.to_thread.run_sync(lambda: self._sync_update_stage(stage_id, dict(fields)))
 
     async def record_attempt(
         self,

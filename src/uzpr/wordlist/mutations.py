@@ -34,9 +34,7 @@ def case_variants(s: str) -> set[str]:
     Returns:
         Set of case-variant strings (may be smaller than 6 if variants collide).
     """
-    alternating = "".join(
-        c.upper() if i % 2 == 0 else c.lower() for i, c in enumerate(s)
-    )
+    alternating = "".join(c.upper() if i % 2 == 0 else c.lower() for i, c in enumerate(s))
     return {
         s,
         s.lower(),
@@ -75,7 +73,7 @@ def leet_variants(s: str) -> set[str]:
     for idx, ch in enumerate(s_lower):
         if ch in _LEET_TABLE:
             for replacement in _LEET_TABLE[ch]:
-                variant = s_lower[:idx] + replacement + s_lower[idx + 1:]
+                variant = s_lower[:idx] + replacement + s_lower[idx + 1 :]
                 variants.add(variant)
                 if len(variants) >= _LEET_CAP:
                     return variants
@@ -83,9 +81,7 @@ def leet_variants(s: str) -> set[str]:
     # Pass 2: all-at-once substitutions via BFS-style expansion
     # Build list of (position, replacement) choices
     substitution_positions: list[tuple[int, list[str]]] = [
-        (idx, _LEET_TABLE[ch])
-        for idx, ch in enumerate(s_lower)
-        if ch in _LEET_TABLE
+        (idx, _LEET_TABLE[ch]) for idx, ch in enumerate(s_lower) if ch in _LEET_TABLE
     ]
 
     if not substitution_positions:
@@ -97,7 +93,7 @@ def leet_variants(s: str) -> set[str]:
         next_pending: list[str] = []
         for base in pending:
             for replacement in replacements:
-                candidate = base[:idx] + replacement + base[idx + 1:]
+                candidate = base[:idx] + replacement + base[idx + 1 :]
                 next_pending.append(candidate)
                 variants.add(candidate)
                 if len(variants) >= _LEET_CAP:

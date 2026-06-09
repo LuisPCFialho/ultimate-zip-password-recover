@@ -11,7 +11,16 @@ from uzpr.wordlist.mutations import case_variants, leet_variants, suffix_combos
 
 # Default suffixes used when hints carry none
 _DEFAULT_SUFFIXES: tuple[str, ...] = (
-    "", ".", "!", "1", "12", "123", "1234", "0", "01", "!",
+    "",
+    ".",
+    "!",
+    "1",
+    "12",
+    "123",
+    "1234",
+    "0",
+    "01",
+    "!",
 )
 
 # Symbols used for Tier-D injection
@@ -120,7 +129,6 @@ async def generate(
         return True
 
     with out_path.open("w", encoding="utf-8") as fh:
-
         # ------------------------------------------------------------------ #
         # Tier A: raw seeds + raw date fragments
         # ------------------------------------------------------------------ #

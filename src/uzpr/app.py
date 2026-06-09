@@ -53,16 +53,19 @@ def build_application() -> Orchestrator:
     hashcat_runner = None
     if hashcat_binary is not None:
         from uzpr.engines.hashcat import HashcatRunner
+
         hashcat_runner = HashcatRunner(hashcat_binary, work_dir=_work_dir)
 
     john_runner = None
     if john_binary is not None:
         from uzpr.engines.john import JohnRunner
+
         john_runner = JohnRunner(john_binary, work_dir=_work_dir)
 
     bkcrack_runner = None
     if bkcrack_binary is not None:
         from uzpr.engines.bkcrack import BkcrackRunner
+
         bkcrack_runner = BkcrackRunner(bkcrack_binary, work_dir=_work_dir)
 
     # --- Stage instantiation (ordered 1..13) ---
@@ -77,22 +80,23 @@ def build_application() -> Orchestrator:
     def _try_import(module: str, cls: str) -> type[Stage] | None:
         try:
             import importlib
+
             mod = importlib.import_module(module)
             return getattr(mod, cls)  # type: ignore[return-value]
         except (ImportError, AttributeError) as exc:
             log.debug("stage_module_unavailable", module=module, cls=cls, reason=str(exc))
             return None
 
-    S04 = _try_import("uzpr.core.stages.s04_top_passwords",  "TopPasswordsStage")
-    S05 = _try_import("uzpr.core.stages.s05_dictionary",     "DictionaryStage")
-    S06 = _try_import("uzpr.core.stages.s06_john_rules",     "JohnRulesStage")
-    S07 = _try_import("uzpr.core.stages.s07_hashcat_rules",  "HashcatRulesStage")
-    S08 = _try_import("uzpr.core.stages.s08_mask_attack",    "MaskAttackStage")
-    S09 = _try_import("uzpr.core.stages.s09_hybrid",         "HybridStage")
-    S10 = _try_import("uzpr.core.stages.s10_prince",         "PrinceStage")
-    S11 = _try_import("uzpr.core.stages.s11_markov",         "MarkovStage")
-    S12 = _try_import("uzpr.core.stages.s12_bruteforce",     "BruteForceStage")
-    S13 = _try_import("uzpr.core.stages.s13_bkcrack",        "BkcrackStage")
+    S04 = _try_import("uzpr.core.stages.s04_top_passwords", "TopPasswordsStage")
+    S05 = _try_import("uzpr.core.stages.s05_dictionary", "DictionaryStage")
+    S06 = _try_import("uzpr.core.stages.s06_john_rules", "JohnRulesStage")
+    S07 = _try_import("uzpr.core.stages.s07_hashcat_rules", "HashcatRulesStage")
+    S08 = _try_import("uzpr.core.stages.s08_mask_attack", "MaskAttackStage")
+    S09 = _try_import("uzpr.core.stages.s09_hybrid", "HybridStage")
+    S10 = _try_import("uzpr.core.stages.s10_prince", "PrinceStage")
+    S11 = _try_import("uzpr.core.stages.s11_markov", "MarkovStage")
+    S12 = _try_import("uzpr.core.stages.s12_bruteforce", "BruteForceStage")
+    S13 = _try_import("uzpr.core.stages.s13_bkcrack", "BkcrackStage")
 
     # Build stage instances.  Stages that accept runner instances receive them
     # via keyword argument; stages that don't need them take no args.
@@ -110,6 +114,7 @@ def build_application() -> Orchestrator:
         try:
             # Pass runner kwargs only when the constructor accepts them.
             import inspect
+
             sig = inspect.signature(cls.__init__)
             accepted = set(sig.parameters.keys()) - {"self"}
             filtered = {k: v for k, v in kwargs.items() if k in accepted}

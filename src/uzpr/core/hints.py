@@ -52,6 +52,7 @@ def normalize_hints(raw: dict[str, Any]) -> Hints:
     For Path fields: resolve the path.
     For int/str scalars: coerce to the appropriate type.
     """
+
     def _norm_str_seq(value: Any) -> list[str]:
         if not value:
             return []

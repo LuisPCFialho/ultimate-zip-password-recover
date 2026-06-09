@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QSizePolicy, QWidget
 
 _BG_COLOR = QColor(30, 30, 30)
 _GRID_COLOR = QColor(60, 60, 60)
-_LINE_COLOR = QColor(0, 120, 212)      # Windows accent blue #0078D4
+_LINE_COLOR = QColor(0, 120, 212)  # Windows accent blue #0078D4
 _LABEL_COLOR = QColor(220, 220, 220)
 _FIXED_HEIGHT = 80
 

@@ -68,9 +68,8 @@ class DictionaryStage:
         outcome = StageOutcome.EXHAUSTED
         password: str | None = None
 
-        wordlist_path = (
-            _locate_wordlist("rockyou.txt", ctx.work_dir)
-            or _locate_wordlist("top10k.txt", ctx.work_dir)
+        wordlist_path = _locate_wordlist("rockyou.txt", ctx.work_dir) or _locate_wordlist(
+            "top10k.txt", ctx.work_dir
         )
 
         if wordlist_path is None:

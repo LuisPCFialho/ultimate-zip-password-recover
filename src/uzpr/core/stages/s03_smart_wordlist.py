@@ -87,9 +87,7 @@ class SmartWordlistStage:
         async def _body() -> None:
             nonlocal outcome, password
 
-            wordlist_path: Path = await generate(
-                ctx.hints, ctx.work_dir, cap=10_000_000
-            )
+            wordlist_path: Path = await generate(ctx.hints, ctx.work_dir, cap=10_000_000)
 
             if ctx.archive_format in _GPU_FORMATS:
                 await _run_hashcat(wordlist_path)

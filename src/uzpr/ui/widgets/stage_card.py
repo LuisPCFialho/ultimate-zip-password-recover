@@ -12,21 +12,21 @@ except ImportError:
     from PySide6.QtWidgets import QProgressBar as ProgressBar  # type: ignore[assignment]
 
 _STATUS_COLORS = {
-    "pending":   "#7A7A84",
-    "running":   "#3B82F6",
-    "found":     "#22C55E",
+    "pending": "#7A7A84",
+    "running": "#3B82F6",
+    "found": "#22C55E",
     "exhausted": "#F97316",
-    "skipped":   "#7A7A84",
-    "failed":    "#EF4444",
+    "skipped": "#7A7A84",
+    "failed": "#EF4444",
 }
 
 _STATUS_ICONS = {
-    "pending":   "○",   # ○
-    "running":   "▶",   # ▶
-    "found":     "✔",   # ✔
-    "exhausted": "□",   # □
-    "skipped":   "−",   # −
-    "failed":    "✗",   # ✗
+    "pending": "○",  # ○
+    "running": "▶",  # ▶
+    "found": "✔",  # ✔
+    "exhausted": "□",  # □
+    "skipped": "−",  # −
+    "failed": "✗",  # ✗
 }
 
 
@@ -159,9 +159,7 @@ class StageCard(CardWidget):
         color = _STATUS_COLORS.get(status, "#7A7A84")
         icon = _STATUS_ICONS.get(status, "○")
         self._status_icon.setText(icon)
-        self._status_icon.setStyleSheet(
-            f"QLabel {{ color: {color}; font-size: 16px; }}"
-        )
+        self._status_icon.setStyleSheet(f"QLabel {{ color: {color}; font-size: 16px; }}")
         self._badge.setStyleSheet(
             f"QLabel {{ border-radius: 16px; background: {color}22;"
             f" color: {color}; font-size: 12px; font-weight: bold; }}"

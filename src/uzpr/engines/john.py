@@ -77,9 +77,7 @@ class JohnRunner:
 
         try:
             async with anyio.create_task_group() as tg:
-                tg.start_soon(
-                    self._stream_stderr, proc, on_event, stats, session
-                )
+                tg.start_soon(self._stream_stderr, proc, on_event, stats, session)
                 tg.start_soon(self._poll_status, session, on_event, stats, proc)
         except Exception as exc:
             log.warning("john_stream_error", error=str(exc))
@@ -141,9 +139,7 @@ class JohnRunner:
 
         try:
             async with anyio.create_task_group() as tg:
-                tg.start_soon(
-                    self._stream_stderr, proc, on_event, stats, session
-                )
+                tg.start_soon(self._stream_stderr, proc, on_event, stats, session)
                 tg.start_soon(self._poll_status, session, on_event, stats, proc)
         except Exception as exc:
             log.warning("john_resume_stream_error", error=str(exc))

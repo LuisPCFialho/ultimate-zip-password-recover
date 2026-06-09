@@ -27,14 +27,17 @@ try:
         TitleLabel,
         ToolButton,
     )
+
     try:
         from qfluentwidgets import FluentIcon as FIF
+
         _HAS_FIF = True
     except ImportError:
         _HAS_FIF = False
 except ImportError:
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
+
     InfoBar = None  # type: ignore[assignment,misc]
     InfoBarPosition = None  # type: ignore[assignment,misc]
     MessageBox = None  # type: ignore[assignment,misc]
@@ -43,30 +46,31 @@ except ImportError:
     from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
     from PySide6.QtWidgets import QPushButton as ToolButton  # type: ignore[assignment]
     from PySide6.QtWidgets import QTableWidget as TableWidget  # type: ignore[assignment]
+
     _HAS_FIF = False
 
 if TYPE_CHECKING:
     from uzpr.persistence.models import SessionRow
 
-_COL_ARCHIVE  = 0
-_COL_FORMAT   = 1
-_COL_STATUS   = 2
+_COL_ARCHIVE = 0
+_COL_FORMAT = 1
+_COL_STATUS = 2
 _COL_PASSWORD = 3
-_COL_STAGE    = 4
+_COL_STAGE = 4
 _COL_DURATION = 5
-_COL_DATE     = 6
-_COL_COUNT    = 7
+_COL_DATE = 6
+_COL_COUNT = 7
 
 _HEADERS = ["Archive", "Format", "Status", "Password", "Found By", "Duration", "Date"]
 
 _STATUS_COLORS: dict[str, str] = {
-    "pending":   "#7A7A84",
-    "running":   "#3B82F6",
-    "paused":    "#F59E0B",
-    "found":     "#22C55E",
+    "pending": "#7A7A84",
+    "running": "#3B82F6",
+    "paused": "#F59E0B",
+    "found": "#22C55E",
     "exhausted": "#F97316",
     "cancelled": "#EF4444",
-    "failed":    "#EF4444",
+    "failed": "#EF4444",
 }
 
 
@@ -84,6 +88,7 @@ def _fmt_duration(start: float, end: float) -> str:
 
 def _fmt_date(ts: float) -> str:
     import datetime
+
     return datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M")
 
 
@@ -100,9 +105,7 @@ class _PasswordCell(QWidget):
         layout.setSpacing(6)
 
         self._label = BodyLabel("••••••" if password else "—")
-        self._label.setStyleSheet(
-            "font-family: 'Consolas', monospace; color: #B4B4BC;"
-        )
+        self._label.setStyleSheet("font-family: 'Consolas', monospace; color: #B4B4BC;")
 
         self._toggle_btn = PushButton("Show")
         self._toggle_btn.setFixedSize(48, 22)
@@ -254,8 +257,7 @@ class HistoryPage(QWidget):
     def _apply_filter(self, text: str) -> None:
         query = text.strip().lower()
         filtered = [
-            s for s in self._all_sessions
-            if not query or query in Path(s.archive_path).name.lower()
+            s for s in self._all_sessions if not query or query in Path(s.archive_path).name.lower()
         ]
         self._populate_table(filtered)
 
@@ -266,11 +268,12 @@ class HistoryPage(QWidget):
         for row, session in enumerate(sessions):
             archive_name = Path(session.archive_path).name
             self._table.setItem(row, _COL_ARCHIVE, QTableWidgetItem(archive_name))
-            self._table.setItem(row, _COL_FORMAT,  QTableWidgetItem(session.archive_format))
+            self._table.setItem(row, _COL_FORMAT, QTableWidgetItem(session.archive_format))
 
             status_item = QTableWidgetItem(session.status.upper())
             color = _STATUS_COLORS.get(session.status, "#7A7A84")
             from PySide6.QtGui import QColor
+
             status_item.setForeground(QColor(color))
             self._table.setItem(row, _COL_STATUS, status_item)
 

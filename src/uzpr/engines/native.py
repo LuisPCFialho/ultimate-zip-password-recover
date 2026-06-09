@@ -83,6 +83,7 @@ class NativeVerifier:
 # Private entry-selection helper
 # ---------------------------------------------------------------------------
 
+
 def _pick_entry(archive: Path) -> str:
     """Return the name of the smallest encrypted entry in a ZIP archive.
 

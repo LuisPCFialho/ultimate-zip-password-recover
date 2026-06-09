@@ -73,7 +73,7 @@ def _pick_max_length(
     """Return the largest length N where 95^N / cps <= budget_seconds."""
     chosen = min_len - 1
     for n in range(min_len, min(max_len, _MAX_MASK_LEN) + 1):
-        ks = _CHARSET_SIZE ** n
+        ks = _CHARSET_SIZE**n
         if ks / cps <= budget_seconds:
             chosen = n
         else:
@@ -110,8 +110,8 @@ class BruteForceStage:
             )
             return _EMPTY_PLAN
 
-        keyspace = sum(_CHARSET_SIZE ** n for n in range(min_len, chosen_max + 1))
-        total_ks = sum(_CHARSET_SIZE ** n for n in range(min_len, max_len + 1))
+        keyspace = sum(_CHARSET_SIZE**n for n in range(min_len, chosen_max + 1))
+        total_ks = sum(_CHARSET_SIZE**n for n in range(min_len, max_len + 1))
         covered_ratio = keyspace / total_ks if total_ks > 0 else 1.0
         prior = min(0.5, covered_ratio)
 

@@ -63,7 +63,7 @@ def _estimate_keyspace(masks: list[str]) -> int:
                 # literal character — contributes exactly 1 candidate per position
                 positions += 1
                 i += 1
-        total += _CHARSET_SIZE ** positions
+        total += _CHARSET_SIZE**positions
     return total
 
 

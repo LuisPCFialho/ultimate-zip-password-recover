@@ -39,6 +39,7 @@ except ImportError:
     from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
+
     InfoBar = None  # type: ignore[assignment,misc]
     InfoBarPosition = None  # type: ignore[assignment,misc]
     from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
@@ -51,28 +52,28 @@ if TYPE_CHECKING:
     from uzpr.archive.detect import ArchiveInfo
 
 _BUDGET_OPTIONS: list[tuple[str, int]] = [
-    ("1 min",  60),
-    ("5 min",  300),
+    ("1 min", 60),
+    ("5 min", 300),
     ("30 min", 1800),
-    ("2 h",    7200),
-    ("8 h",    28800),
-    ("24 h",   86400),
+    ("2 h", 7200),
+    ("8 h", 28800),
+    ("24 h", 86400),
 ]
 
 _STAGE_TABLE: list[tuple[int, str, str, str, str]] = [
-    (1,  "known-password",     "native",  "100%", "free"),
-    (2,  "partial-mask",       "hashcat", "70%",  "free"),
-    (3,  "generated-wordlist", "hashcat", "40%",  "free"),
-    (4,  "rockyou-straight",   "hashcat", "35%",  "1/9"),
-    (5,  "rockyou-rules",      "hashcat", "30%",  "1/9"),
-    (6,  "masks-brute",        "hashcat", "25%",  "1/9"),
-    (7,  "prince-stems",       "hashcat", "20%",  "1/9"),
-    (8,  "john-incremental",   "john",    "15%",  "1/9"),
-    (9,  "hybrid-wl-mask",     "hashcat", "12%",  "1/9"),
-    (10, "hybrid-mask-wl",     "hashcat", "10%",  "1/9"),
-    (11, "combinator",         "hashcat", "8%",   "1/9"),
-    (12, "targeted-brute",     "hashcat", "6%",   "1/9"),
-    (13, "bkcrack-plaintext",  "bkcrack", "100%", "free"),
+    (1, "known-password", "native", "100%", "free"),
+    (2, "partial-mask", "hashcat", "70%", "free"),
+    (3, "generated-wordlist", "hashcat", "40%", "free"),
+    (4, "rockyou-straight", "hashcat", "35%", "1/9"),
+    (5, "rockyou-rules", "hashcat", "30%", "1/9"),
+    (6, "masks-brute", "hashcat", "25%", "1/9"),
+    (7, "prince-stems", "hashcat", "20%", "1/9"),
+    (8, "john-incremental", "john", "15%", "1/9"),
+    (9, "hybrid-wl-mask", "hashcat", "12%", "1/9"),
+    (10, "hybrid-mask-wl", "hashcat", "10%", "1/9"),
+    (11, "combinator", "hashcat", "8%", "1/9"),
+    (12, "targeted-brute", "hashcat", "6%", "1/9"),
+    (13, "bkcrack-plaintext", "bkcrack", "100%", "free"),
 ]
 
 
@@ -92,6 +93,7 @@ def _section_title(text: str) -> QLabel:
 # ---------------------------------------------------------------------------
 # Step pages
 # ---------------------------------------------------------------------------
+
 
 class _StepArchive(QWidget):
     """Step 1 — archive selection and detection."""
@@ -127,8 +129,12 @@ class _StepArchive(QWidget):
         self._info_entries = BodyLabel("Entries: —")
         self._info_encryption = BodyLabel("Encryption: —")
         self._info_recommended = BodyLabel("Recommended attack: —")
-        for lbl in (self._info_format, self._info_entries,
-                    self._info_encryption, self._info_recommended):
+        for lbl in (
+            self._info_format,
+            self._info_entries,
+            self._info_encryption,
+            self._info_recommended,
+        ):
             info_layout.addWidget(lbl)
         self._info_card.setVisible(False)
         layout.addWidget(self._info_card)
@@ -178,22 +184,25 @@ class _StepArchive(QWidget):
             self._info_format.setText(f"Format: {info.format}")
             self._info_entries.setText(f"Entries: {len(info.entries)}")
             enc = (
-                f"AES-{info.aes_strength}" if info.aes_strength else
-                ("Header-encrypted" if info.header_encrypted else "Standard")
+                f"AES-{info.aes_strength}"
+                if info.aes_strength
+                else ("Header-encrypted" if info.header_encrypted else "Standard")
             )
             self._info_encryption.setText(f"Encryption: {enc}")
             mode_map = {
                 "zip-classic": "ZipCrypto (mode 17200/17225)",
-                "zip-aes":     "WinZip-AES (mode 13600)",
-                "rar3-hp":     "RAR3 (mode 12500)",
-                "rar5":        "RAR5 (mode 13000)",
+                "zip-aes": "WinZip-AES (mode 13600)",
+                "rar3-hp": "RAR3 (mode 12500)",
+                "rar5": "RAR5 (mode 13000)",
             }
             rec = mode_map.get(info.format, "Unknown — check manually")
             self._info_recommended.setText(f"Recommended attack: {rec}")
             self._info_card.setVisible(True)
 
             if info.format == "pkware-strong":
-                self._show_warning("PKWARE Strong Encryption is not recoverable by brute-force. Proceed only if you have a known-password hint.")
+                self._show_warning(
+                    "PKWARE Strong Encryption is not recoverable by brute-force. Proceed only if you have a known-password hint."
+                )
         except Exception as exc:
             self._show_error(f"Detection failed: {exc}")
 
@@ -265,10 +274,10 @@ class _StepHints(QWidget):
         name_form.setSpacing(8)
         for label, store in (
             ("First names (comma-sep)", self._first_names),
-            ("Surnames",               self._surnames),
-            ("Nicknames",              self._nicknames),
-            ("Pet names",              self._pet_names),
-            ("Children names",         self._children_names),
+            ("Surnames", self._surnames),
+            ("Nicknames", self._nicknames),
+            ("Pet names", self._pet_names),
+            ("Children names", self._children_names),
         ):
             edit = LineEdit()
             edit.setPlaceholderText(label)
@@ -388,9 +397,9 @@ class _StepHints(QWidget):
     def _on_hint_changed(self) -> None:
         count = self._estimate_candidates()
         if count >= 1_000_000:
-            display = f"≈ {count/1_000_000:.1f}M"
+            display = f"≈ {count / 1_000_000:.1f}M"
         elif count >= 1_000:
-            display = f"≈ {count/1_000:.0f}K"
+            display = f"≈ {count / 1_000:.0f}K"
         else:
             display = f"≈ {count}"
         self._candidate_lbl.setText(f"estimated {display} candidates")
@@ -409,8 +418,11 @@ class _StepHints(QWidget):
         """Very rough candidate count estimate for display purposes."""
         stems = [s.strip() for s in self._stems_edit.text().split(",") if s.strip()]
         name_inputs: list[LineEdit] = (
-            self._first_names + self._surnames + self._nicknames +
-            self._pet_names + self._children_names
+            self._first_names
+            + self._surnames
+            + self._nicknames
+            + self._pet_names
+            + self._children_names
         )
         names = []
         for edit in name_inputs:
@@ -434,9 +446,7 @@ class _StepHints(QWidget):
             d = de.date()
             dates.append((d.day(), d.month(), d.year()))
 
-        suffixes = tuple(
-            tag for tag, cb in self._suffix_checks.items() if cb.isChecked()
-        )
+        suffixes = tuple(tag for tag, cb in self._suffix_checks.items() if cb.isChecked())
 
         case_styles: list[str] = []
         if self._cb_upper.isChecked():
@@ -449,17 +459,17 @@ class _StepHints(QWidget):
             case_styles.append("symbol")
 
         return {
-            "dates":       tuple(dates),
+            "dates": tuple(dates),
             "first_names": _split(self._first_names[0].text()) if self._first_names else (),
-            "surnames":    _split(self._surnames[0].text()) if self._surnames else (),
-            "nicknames":   _split(self._nicknames[0].text()) if self._nicknames else (),
-            "pet_names":   _split(self._pet_names[0].text()) if self._pet_names else (),
-            "places":      tuple(e.text().strip() for e in self._place_edits if e.text().strip()),
-            "stems":       tuple(s.strip() for s in self._stems_edit.text().split(",") if s.strip()),
-            "suffixes":    suffixes,
+            "surnames": _split(self._surnames[0].text()) if self._surnames else (),
+            "nicknames": _split(self._nicknames[0].text()) if self._nicknames else (),
+            "pet_names": _split(self._pet_names[0].text()) if self._pet_names else (),
+            "places": tuple(e.text().strip() for e in self._place_edits if e.text().strip()),
+            "stems": tuple(s.strip() for s in self._stems_edit.text().split(",") if s.strip()),
+            "suffixes": suffixes,
             "case_styles": tuple(case_styles),
-            "min_length":  self._min_slider.value(),
-            "max_length":  self._max_slider.value(),
+            "min_length": self._min_slider.value(),
+            "max_length": self._max_slider.value(),
         }
 
 
@@ -583,8 +593,11 @@ class _StepLaunch(QWidget):
         self._summary_hints = BodyLabel("Hints: —")
         self._summary_low_power = BodyLabel("Low-power: No")
         for lbl in (
-            self._summary_archive, self._summary_format,
-            self._summary_budget, self._summary_hints, self._summary_low_power,
+            self._summary_archive,
+            self._summary_format,
+            self._summary_budget,
+            self._summary_hints,
+            self._summary_low_power,
         ):
             summary_inner.addWidget(lbl)
         layout.addWidget(self._summary_card)
@@ -614,6 +627,7 @@ class _StepLaunch(QWidget):
 # ---------------------------------------------------------------------------
 # Main wizard page
 # ---------------------------------------------------------------------------
+
 
 class NewJobWizardPage(QWidget):
     """Multi-step new job wizard embedded in the main navigation."""
@@ -742,9 +756,7 @@ class NewJobWizardPage(QWidget):
         hints_kw = self._step_hints.build_hints_kwargs()
         budget_s = self._step_strategy.get_budget_s()
         low_power = self._step_strategy.is_low_power()
-        asyncio.ensure_future(
-            self._launch_session(info, hints_kw, budget_s, low_power)
-        )
+        asyncio.ensure_future(self._launch_session(info, hints_kw, budget_s, low_power))
 
     async def _launch_session(
         self,
@@ -760,9 +772,7 @@ class NewJobWizardPage(QWidget):
             hints = Hints(**hints_kw)  # type: ignore[arg-type]
             app = build_application()
             repo = app._repo  # type: ignore[attr-defined]
-            session_id = await repo.create_session(
-                archive_info, hints, float(budget_s), low_power
-            )
+            session_id = await repo.create_session(archive_info, hints, float(budget_s), low_power)
             self.session_started.emit(session_id)
         except Exception as exc:
             if InfoBar is not None:
@@ -778,6 +788,7 @@ class NewJobWizardPage(QWidget):
 # ---------------------------------------------------------------------------
 # Step indicator bar
 # ---------------------------------------------------------------------------
+
 
 class _StepBar(QWidget):
     def __init__(self, steps: list[str], parent: QWidget | None = None) -> None:

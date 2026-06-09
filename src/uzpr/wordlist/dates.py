@@ -32,8 +32,8 @@ def encode_dates(
         mm = f"{m:02d}"
         yy = f"{y % 100:02d}"
         yyyy = f"{y:04d}"
-        d_str = str(d)   # no leading zero
-        m_str = str(m)   # no leading zero
+        d_str = str(d)  # no leading zero
+        m_str = str(m)  # no leading zero
 
         # Pure fragments
         _add(dd)

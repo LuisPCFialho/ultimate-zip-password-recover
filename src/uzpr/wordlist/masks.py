@@ -73,9 +73,8 @@ def derive_masks(hints: Hints, work_dir: Path, max_masks: int = 200) -> Path:
 
     # Determine active charset classes
     use_lower = "lower" in hints.must_have
-    use_upper = (
-        "upper" in hints.must_have
-        or any(s in ("Capital", "UPPER", "camelCase", "alternating") for s in hints.case_styles)
+    use_upper = "upper" in hints.must_have or any(
+        s in ("Capital", "UPPER", "camelCase", "alternating") for s in hints.case_styles
     )
     use_digit = "digit" in hints.must_have
     use_symbol = "symbol" in hints.must_have

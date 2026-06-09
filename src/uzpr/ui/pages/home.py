@@ -40,23 +40,23 @@ if TYPE_CHECKING:
     from uzpr.persistence.models import SessionRow
 
 _FORMAT_LABELS: dict[str, str] = {
-    "zip-classic":    "ZIP",
-    "zip-aes":        "ZIP-AES",
-    "rar3-hp":        "RAR3",
-    "rar5":           "RAR5",
-    "pkware-strong":  "PKWARE",
-    "plain":          "PLAIN",
-    "unsupported":    "???",
+    "zip-classic": "ZIP",
+    "zip-aes": "ZIP-AES",
+    "rar3-hp": "RAR3",
+    "rar5": "RAR5",
+    "pkware-strong": "PKWARE",
+    "plain": "PLAIN",
+    "unsupported": "???",
 }
 
 _STATUS_COLORS: dict[str, str] = {
-    "pending":   "#7A7A84",
-    "running":   "#3B82F6",
-    "paused":    "#F59E0B",
-    "found":     "#22C55E",
+    "pending": "#7A7A84",
+    "running": "#3B82F6",
+    "paused": "#F59E0B",
+    "found": "#22C55E",
     "exhausted": "#F97316",
     "cancelled": "#EF4444",
-    "failed":    "#EF4444",
+    "failed": "#EF4444",
 }
 
 
@@ -109,16 +109,16 @@ class _RecentJobRow(QFrame):
 
         archive_name = Path(session.archive_path).name
         name_lbl = BodyLabel(archive_name)
-        name_lbl.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
-        )
+        name_lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         fmt_str = _FORMAT_LABELS.get(session.archive_format, session.archive_format.upper())
         fmt_chip = QWidget()
         fmt_chip_layout = QHBoxLayout(fmt_chip)
         fmt_chip_layout.setContentsMargins(6, 2, 6, 2)
         fmt_label = CaptionLabel(fmt_str)
-        fmt_label.setStyleSheet("color: #B4B4BC; background: #2B2B33; border-radius: 4px; padding: 1px 5px;")
+        fmt_label.setStyleSheet(
+            "color: #B4B4BC; background: #2B2B33; border-radius: 4px; padding: 1px 5px;"
+        )
         fmt_chip_layout.addWidget(fmt_label)
 
         color = _STATUS_COLORS.get(session.status, "#7A7A84")
@@ -253,6 +253,7 @@ class HomePage(ScrollArea):
     def _load_recent_sessions(self) -> None:
         try:
             import asyncio
+
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 asyncio.ensure_future(self._async_load_sessions())

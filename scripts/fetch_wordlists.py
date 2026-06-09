@@ -42,12 +42,8 @@ _RULE_SOURCES: dict[str, str] = {
         "https://raw.githubusercontent.com/NotSoSecure/password_cracking_rules/"
         "master/OneRuleToRuleThemAll.rule"
     ),
-    "best64.rule": (
-        "https://raw.githubusercontent.com/hashcat/hashcat/master/rules/best64.rule"
-    ),
-    "dive.rule": (
-        "https://raw.githubusercontent.com/hashcat/hashcat/master/rules/dive.rule"
-    ),
+    "best64.rule": ("https://raw.githubusercontent.com/hashcat/hashcat/master/rules/best64.rule"),
+    "dive.rule": ("https://raw.githubusercontent.com/hashcat/hashcat/master/rules/dive.rule"),
 }
 
 _ROCKYOU_LICENSE_NOTICE = """\

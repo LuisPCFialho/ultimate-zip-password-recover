@@ -23,9 +23,7 @@ async def extract_zip_hash(archive_path: Path, work_dir: Path) -> Path:
 
     if result.returncode != 0:
         stderr = result.stderr.decode(errors="replace").strip()
-        raise RuntimeError(
-            f"zip2john exited with code {result.returncode}: {stderr}"
-        )
+        raise RuntimeError(f"zip2john exited with code {result.returncode}: {stderr}")
 
     stdout = result.stdout
     if not stdout.strip():

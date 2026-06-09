@@ -201,11 +201,14 @@ class HashcatRunner:
         argv = [
             str(self._binary),
             "-b",
-            "-m", str(mode),
-            "-d", str(device_id),
+            "-m",
+            str(mode),
+            "-d",
+            str(device_id),
             "--runtime=10",
             "-O",
-            "-w", "2",
+            "-w",
+            "2",
             "--machine-readable",
         ]
         log.info("hashcat_benchmark", mode=mode, device_id=device_id)
@@ -247,8 +250,10 @@ class HashcatRunner:
     ) -> list[str]:
         argv = [
             str(self._binary),
-            "-m", str(mode),
-            "-a", str(attack),
+            "-m",
+            str(mode),
+            "-a",
+            str(attack),
             str(hash_file),
             *extra_args,
             "--quiet",

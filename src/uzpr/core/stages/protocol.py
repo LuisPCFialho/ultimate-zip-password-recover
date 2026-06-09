@@ -19,7 +19,7 @@ class StageOutcome(StrEnum):
 class Hints:
     full_password: str | None = None
     partial_mask: str | None = None
-    dates: tuple[tuple[int, int, int], ...] = ()       # (d, m, y)
+    dates: tuple[tuple[int, int, int], ...] = ()  # (d, m, y)
     first_names: tuple[str, ...] = ()
     surnames: tuple[str, ...] = ()
     nicknames: tuple[str, ...] = ()
@@ -43,8 +43,8 @@ class StageContext:
     stage_no: int
     archive_path: Path
     hash_file: Path
-    archive_format: str            # 'zip-classic'|'zip-aes'|'rar3'|'rar5'
-    hashcat_mode: int | None       # 17200/17225/13600/12500/13000/None
+    archive_format: str  # 'zip-classic'|'zip-aes'|'rar3'|'rar5'
+    hashcat_mode: int | None  # 17200/17225/13600/12500/13000/None
     hints: Hints
     budget_seconds: float
     work_dir: Path
@@ -86,7 +86,7 @@ class StageResult:
 @dataclass(slots=True)
 class StageEvent:
     ts: float
-    kind: str                      # 'progress'|'rate'|'sample'|'log'
+    kind: str  # 'progress'|'rate'|'sample'|'log'
     payload: dict[str, object] = field(default_factory=dict)
 
 
@@ -97,7 +97,7 @@ EventSink = Callable[[StageEvent], Awaitable[None]]
 class Stage(Protocol):
     stage_no: int
     name: str
-    engine: str                    # 'native'|'hashcat'|'john'|'bkcrack'
+    engine: str  # 'native'|'hashcat'|'john'|'bkcrack'
 
     async def prepare(self, ctx: StageContext) -> StagePlan: ...
     async def run(self, ctx: StageContext, on_event: EventSink) -> StageResult: ...

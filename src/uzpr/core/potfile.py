@@ -93,7 +93,7 @@ class SharedPotfile:
                     sep = line.find(":")
                     if sep < 0:
                         continue
-                    yield line[:sep], line[sep + 1:]
+                    yield line[:sep], line[sep + 1 :]
             finally:
                 if sys.platform != "win32":
                     fcntl.flock(fh, fcntl.LOCK_UN)  # type: ignore[attr-defined]

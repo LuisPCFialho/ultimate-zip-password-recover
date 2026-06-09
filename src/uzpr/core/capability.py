@@ -61,7 +61,9 @@ class CapabilityProbe:
     def _load_benchmark_cache(self) -> None:
         try:
             conn = self._get_conn()
-            rows = conn.execute("SELECT device_key, benchmarks_json FROM capability_cache").fetchall()
+            rows = conn.execute(
+                "SELECT device_key, benchmarks_json FROM capability_cache"
+            ).fetchall()
             for row in rows:
                 key_str: str = row["device_key"]
                 benchmarks: dict[str, float] = json.loads(row["benchmarks_json"])
@@ -77,7 +79,9 @@ class CapabilityProbe:
         except Exception as exc:
             log.warning("benchmark_cache_load_failed", error=str(exc))
 
-    def _save_benchmark(self, mode: int, device_id: int, hps: float, device_name: str, driver: str) -> None:
+    def _save_benchmark(
+        self, mode: int, device_id: int, hps: float, device_name: str, driver: str
+    ) -> None:
         try:
             conn = self._get_conn()
             device_key = f"{mode}:{device_id}"
@@ -109,13 +113,15 @@ class CapabilityProbe:
             id_match = re.match(r"^Backend Device ID #(\d+)", stripped)
             if id_match:
                 if current_name is not None:
-                    devices.append(GpuDevice(
-                        id=device_id,
-                        name=current_name,
-                        vram_mb=current_vram,
-                        driver=current_driver or "",
-                        vendor=current_vendor,
-                    ))
+                    devices.append(
+                        GpuDevice(
+                            id=device_id,
+                            name=current_name,
+                            vram_mb=current_vram,
+                            driver=current_driver or "",
+                            vendor=current_vendor,
+                        )
+                    )
                 device_id = int(id_match.group(1)) - 1  # hashcat is 1-indexed
                 current_name = None
                 current_driver = None
@@ -143,13 +149,15 @@ class CapabilityProbe:
                     current_vendor = "other"
 
         if current_name is not None:
-            devices.append(GpuDevice(
-                id=device_id,
-                name=current_name,
-                vram_mb=current_vram,
-                driver=current_driver or "",
-                vendor=current_vendor,
-            ))
+            devices.append(
+                GpuDevice(
+                    id=device_id,
+                    name=current_name,
+                    vram_mb=current_vram,
+                    driver=current_driver or "",
+                    vendor=current_vendor,
+                )
+            )
 
         return devices
 
@@ -175,13 +183,15 @@ class CapabilityProbe:
                 vendor = "intel"
             else:
                 vendor = "other"
-            gpus.append(GpuDevice(
-                id=idx,
-                name=str(info.get("name", f"GPU {idx}")),
-                vram_mb=int(info.get("vram_mb", 0)),
-                driver=str(info.get("driver", "")),
-                vendor=vendor,
-            ))
+            gpus.append(
+                GpuDevice(
+                    id=idx,
+                    name=str(info.get("name", f"GPU {idx}")),
+                    vram_mb=int(info.get("vram_mb", 0)),
+                    driver=str(info.get("driver", "")),
+                    vendor=vendor,
+                )
+            )
 
         # Cross-validate / supplement with hashcat -I if available.
         if self._hashcat_binary and self._hashcat_binary.is_file():
@@ -217,11 +227,14 @@ class CapabilityProbe:
                     [
                         str(self._hashcat_binary),
                         "-b",
-                        "-m", str(mode),
+                        "-m",
+                        str(mode),
                         "--runtime=5",
                         "-O",
-                        "-w", "2",
-                        "-d", str(device_id),
+                        "-w",
+                        "2",
+                        "-d",
+                        str(device_id),
                         "--machine-readable",
                     ],
                     check=False,
@@ -251,11 +264,14 @@ class CapabilityProbe:
                 [
                     str(self._hashcat_binary),
                     "-b",
-                    "-m", str(mode),
-                    "-d", str(device_id),
+                    "-m",
+                    str(mode),
+                    "-d",
+                    str(device_id),
                     "--runtime=10",
                     "-O",
-                    "-w", "2",
+                    "-w",
+                    "2",
                     "--machine-readable",
                 ],
                 check=False,

@@ -24,35 +24,36 @@ _APP_NAME = "UltimateZipPasswordRecover"
 # Mapping: tool name → (subdir_parts, exe_win, exe_posix)
 # subdir_parts are joined under tools/<subdir>/
 _TOOL_MAP: dict[str, tuple[tuple[str, ...], str, str]] = {
-    "hashcat":  (("hashcat",),              "hashcat.exe",  "hashcat"),
-    "john":     (("john", "run"),           "john.exe",     "john"),
-    "zip2john": (("john", "run"),           "zip2john.exe", "zip2john"),
-    "rar2john": (("john", "run"),           "rar2john.exe", "rar2john"),
-    "bkcrack":  (("bkcrack",),              "bkcrack.exe",  "bkcrack"),
-    "pp64":     (("john", "run"),           "pp64.exe",     "pp64"),
+    "hashcat": (("hashcat",), "hashcat.exe", "hashcat"),
+    "john": (("john", "run"), "john.exe", "john"),
+    "zip2john": (("john", "run"), "zip2john.exe", "zip2john"),
+    "rar2john": (("john", "run"), "rar2john.exe", "rar2john"),
+    "bkcrack": (("bkcrack",), "bkcrack.exe", "bkcrack"),
+    "pp64": (("john", "run"), "pp64.exe", "pp64"),
 }
 
 # Download URLs for each tool *package* (one URL may satisfy multiple tools)
 _DOWNLOAD_URLS: dict[str, str] = {
-    "hashcat":  "https://hashcat.net/files/hashcat-6.2.6.7z",
-    "john":     "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.7z",
-    "bkcrack":  "https://github.com/kimci86/bkcrack/releases/download/v1.7.0/bkcrack-1.7.0-win64.zip",
+    "hashcat": "https://hashcat.net/files/hashcat-6.2.6.7z",
+    "john": "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.7z",
+    "bkcrack": "https://github.com/kimci86/bkcrack/releases/download/v1.7.0/bkcrack-1.7.0-win64.zip",
 }
 
 # Which "package" does each tool belong to?
 _TOOL_PACKAGE: dict[str, str] = {
-    "hashcat":  "hashcat",
-    "john":     "john",
+    "hashcat": "hashcat",
+    "john": "john",
     "zip2john": "john",
     "rar2john": "john",
-    "pp64":     "john",
-    "bkcrack":  "bkcrack",
+    "pp64": "john",
+    "bkcrack": "bkcrack",
 }
 
 
 # ---------------------------------------------------------------------------
 # Errors
 # ---------------------------------------------------------------------------
+
 
 class ToolNotFoundError(FileNotFoundError):
     """Raised when a required external tool binary is not found."""
@@ -61,6 +62,7 @@ class ToolNotFoundError(FileNotFoundError):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _user_tools_dir() -> Path:
     return Path(platformdirs.user_data_dir(_APP_NAME, False)) / "tools"
@@ -103,6 +105,7 @@ def _rel_path(name: str) -> Path:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def find_tool(name: ToolName) -> Path:
     """Locate a bundled tool binary.
 
@@ -117,8 +120,7 @@ def find_tool(name: ToolName) -> Path:
             return candidate
 
     raise ToolNotFoundError(
-        f"Tool '{name}' not found. Searched: "
-        + ", ".join(str(b / rel) for b in _candidate_dirs())
+        f"Tool '{name}' not found. Searched: " + ", ".join(str(b / rel) for b in _candidate_dirs())
     )
 
 
@@ -165,6 +167,7 @@ def list_status() -> dict[str, dict[str, object]]:
 # ---------------------------------------------------------------------------
 # Download + extract helpers
 # ---------------------------------------------------------------------------
+
 
 async def _download(url: str, dest: Path) -> None:
     """Stream-download *url* to *dest*."""

@@ -47,9 +47,7 @@ class DropZone(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setMinimumHeight(180)
         self.setStyleSheet(_STYLE_NORMAL)
-        self.setText(
-            "\U0001f5c2\n\nDrop a ZIP or RAR archive here\nor click to browse"
-        )
+        self.setText("\U0001f5c2\n\nDrop a ZIP or RAR archive here\nor click to browse")
         self.setWordWrap(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 

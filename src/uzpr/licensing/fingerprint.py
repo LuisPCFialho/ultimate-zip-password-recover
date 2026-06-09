@@ -24,8 +24,7 @@ def _collect_macs() -> str:
                 addr.address
                 for iface_addrs in psutil.net_if_addrs().values()
                 for addr in iface_addrs
-                if addr.family.name == "AF_LINK"
-                and addr.address not in ("", "00:00:00:00:00:00")
+                if addr.family.name == "AF_LINK" and addr.address not in ("", "00:00:00:00:00:00")
             }
         )
         return ";".join(macs)
