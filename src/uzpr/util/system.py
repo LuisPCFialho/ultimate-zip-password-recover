@@ -16,9 +16,11 @@ def cpu_info() -> dict[str, object]:
         return {
             "model": info.get("brand_raw", platform.processor()) or platform.processor(),
             "threads": info.get("count", 0),
-            "freq_mhz": float(info.get("hz_advertised_friendly", "0 MHz").split()[0])
-            if "hz_advertised_friendly" in info
-            else 0.0,
+            "freq_mhz": (
+                float(info.get("hz_advertised_friendly", "0 MHz").split()[0])
+                if "hz_advertised_friendly" in info
+                else 0.0
+            ),
         }
     except Exception:
         freq = psutil.cpu_freq()
