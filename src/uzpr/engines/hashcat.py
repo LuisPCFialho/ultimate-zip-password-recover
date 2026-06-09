@@ -273,6 +273,13 @@ class HashcatRunner:
             f"--outfile={self._work_dir / (session + '.out')}",
             "--outfile-format=2",
             "-O",
+            # Force the OpenCL backend. Mask/brute-force/hybrid attacks (-a 3/6/7)
+            # require runtime kernel compilation, which on NVIDIA needs the full
+            # CUDA SDK toolkit. Machines with only the driver (no SDK) fail those
+            # attacks with the CUDA backend ("Failed to initialize NVIDIA RTC
+            # library"). The OpenCL runtime ships working kernels for every
+            # attack mode, so ignoring CUDA makes the whole cascade reliable.
+            "--backend-ignore-cuda",
         ]
 
         if low_power:
@@ -280,8 +287,14 @@ class HashcatRunner:
         else:
             argv += ["-w", "2"]
 
-        if gpu_devices:
-            argv += ["-d", ",".join(str(d) for d in gpu_devices)]
+        # NOTE: we deliberately do NOT pass `-d <id>`. The device IDs we collect
+        # come from nvidia-smi (CUDA ordering), but because we force the OpenCL
+        # backend (--backend-ignore-cuda above), the OpenCL device enumeration is
+        # different — `-d 0` may select a virtual display or CPU device and make
+        # every attack fail. hashcat auto-selects the fastest available device,
+        # which is what we want. Per-device selection can be re-added once we map
+        # OpenCL device indices properly.
+        _ = gpu_devices  # reserved for future OpenCL-aware device selection
 
         return argv
 
