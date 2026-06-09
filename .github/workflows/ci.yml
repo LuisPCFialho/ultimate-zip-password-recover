@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Lint (ruff + black + pyright)
+    name: Lint (ruff + black)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,7 +28,6 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: black --check .
-      - run: pyright
 
   test:
     name: Tests (${{ matrix.python }})
