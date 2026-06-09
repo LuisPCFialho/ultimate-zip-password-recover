@@ -1,0 +1,153 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ultimate-zip-password-recover"
+version = "0.1.0"
+description = "Bulletproof password recovery for ZIP and RAR archives"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "Luis Fialho" }]
+keywords = ["zip", "rar", "password", "recovery", "crack", "hashcat", "john", "bkcrack"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: System :: Archiving :: Compression",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    # GUI
+    "PySide6>=6.7,<7",
+    "PyQt-Fluent-Widgets[full]>=1.6",
+    # Archive handling
+    "pyzipper>=0.3.6",
+    "rarfile>=4.2",
+    # Persistence
+    "sqlmodel>=0.0.24",
+    # Async / pipeline
+    "anyio>=4.5",
+    "structlog>=24.4",
+    # Hashing / checksums
+    "blake3>=1.0",
+    # Utilities
+    "platformdirs>=4.3",
+    "httpx>=0.28",
+    "rich>=13.9",
+    "click>=8.1",
+    # System info / GPU detection
+    "psutil>=6.1",
+    "py-cpuinfo>=9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "pytest-qt>=4.4",
+    "hypothesis>=6.122",
+    "ruff>=0.8",
+    "black>=24.10",
+    "pyright>=1.1.395",
+    "mypy>=1.13",
+    "pre-commit>=4.0",
+]
+packaging = [
+    "pyinstaller>=6.11",
+    "pyinstaller-hooks-contrib>=2024.10",
+]
+
+[project.scripts]
+uzpr = "uzpr.__main__:main"
+uzpr-cli = "uzpr.cli:main"
+
+[project.gui-scripts]
+ultimate-zip-recover = "uzpr.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/LuisPCFialho/ultimate-zip-password-recover"
+Source = "https://github.com/LuisPCFialho/ultimate-zip-password-recover"
+Issues = "https://github.com/LuisPCFialho/ultimate-zip-password-recover/issues"
+Releases = "https://github.com/LuisPCFialho/ultimate-zip-password-recover/releases"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/uzpr"]
+
+# -- ruff ---------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle / pyflakes
+    "I",             # isort
+    "B",             # bugbear
+    "UP",            # pyupgrade
+    "SIM",           # simplify
+    "C4",            # comprehensions
+    "PT",            # pytest style
+    "RUF",           # ruff-specific
+]
+ignore = [
+    "E501",  # line length (we set 100 above; long strings ok)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "PT011"]
+
+# -- black --------------------------------------------------------------------
+[tool.black]
+line-length = 100
+target-version = ["py311", "py312", "py313"]
+
+# -- pyright ------------------------------------------------------------------
+[tool.pyright]
+include = ["src"]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = "warning"
+reportUnknownMemberType = "warning"
+
+# -- pytest -------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with -m 'not slow')",
+    "gpu: requires a GPU + hashcat",
+    "external: requires external binary (hashcat/john/bkcrack)",
+]
+
+# -- coverage -----------------------------------------------------------------
+[tool.coverage.run]
+branch = true
+source = ["src/uzpr"]
+omit = ["**/__main__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+skip_covered = false

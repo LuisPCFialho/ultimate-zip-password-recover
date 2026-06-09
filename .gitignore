@@ -1,0 +1,78 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+downloads/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- venv ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- testing / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# --- type checkers / linters ---
+.mypy_cache/
+.pyright/
+.pytype/
+.ruff_cache/
+
+# --- packaging ---
+*.spec.bak
+PyInstaller/build/
+PyInstaller/dist/
+installer/output/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- bundled binaries (downloaded at build/run time) ---
+bin/win64/
+bin/linux64/
+bin/macos/
+vendor/hashcat*/
+vendor/john*/
+vendor/bkcrack*/
+
+# --- runtime artifacts ---
+sessions/
+logs/
+wordlists/cache/
+*.session
+*.log
+*.restore
+*.potfile
+
+# --- secrets ---
+.env
+.env.*
+!.env.example
+secrets/
+
+# --- docs build ---
+docs/_build/
+site/
