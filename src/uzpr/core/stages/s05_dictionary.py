@@ -8,6 +8,7 @@ import anyio
 from uzpr.core.stages.protocol import (
     EventSink,
     StageContext,
+    StageEvent,
     StageOutcome,
     StagePlan,
     StageResult,
@@ -27,6 +28,15 @@ _JOHN_FORMAT_MAP: dict[str, str] = {
     "rar3-hp": "rar",
     "rar5": "rar5",
 }
+
+# Wordlists in prevalence order (most-common-first). Each ships already sorted
+# by real-world frequency, so they are NEVER re-sorted here. We run them as
+# separate hashcat -a 0 passes, cheapest-first, stopping on the first FOUND.
+_WORDLISTS: tuple[str, ...] = (
+    "top10k.txt",
+    "top100k.txt",
+    "rockyou.txt",
+)
 
 
 def _locate_wordlist(name: str, work_dir: Path) -> Path | None:
@@ -52,6 +62,12 @@ class DictionaryStage:
         self._stats = StageStats()
         self._active_runner: HashcatRunner | JohnRunner | None = None
 
+    def _accumulate(self, stats: StageStats) -> None:
+        self._stats.candidates_tested += stats.candidates_tested
+        self._stats.rejected_candidates += stats.rejected_candidates
+        if stats.peak_candidates_per_sec > self._stats.peak_candidates_per_sec:
+            self._stats.peak_candidates_per_sec = stats.peak_candidates_per_sec
+
     async def prepare(self, ctx: StageContext) -> StagePlan:
         return StagePlan(
             estimated_keyspace=14_000_000,
@@ -68,13 +84,14 @@ class DictionaryStage:
         outcome = StageOutcome.EXHAUSTED
         password: str | None = None
 
-        wordlist_path = (
-            _locate_wordlist("rockyou.txt", ctx.work_dir)
-            or _locate_wordlist("top100k.txt", ctx.work_dir)
-            or _locate_wordlist("top10k.txt", ctx.work_dir)
-        )
+        # Resolve wordlists in prevalence order, keeping only those that exist.
+        wordlists: list[tuple[str, Path]] = []
+        for name in _WORDLISTS:
+            located = _locate_wordlist(name, ctx.work_dir)
+            if located is not None:
+                wordlists.append((name, located))
 
-        if wordlist_path is None:
+        if not wordlists:
             log.warning("No wordlist found for DictionaryStage; returning SKIPPED")
             return StageResult(
                 outcome=StageOutcome.SKIPPED,
@@ -89,25 +106,47 @@ class DictionaryStage:
 
             try:
                 hashcat_bin = find_tool("hashcat")
-                await _run_hashcat(hashcat_bin, wordlist_path)
-                return
+                runner_kind = "hashcat"
             except ToolNotFoundError:
                 log.warning("hashcat not available; trying john for DictionaryStage")
+                try:
+                    hashcat_bin = None
+                    john_bin = find_tool("john")
+                    runner_kind = "john"
+                except ToolNotFoundError:
+                    log.warning("john not available; DictionaryStage cannot run")
+                    outcome = StageOutcome.FAILED
+                    return
 
-            try:
-                john_bin = find_tool("john")
-                await _run_john(john_bin, wordlist_path)
-            except ToolNotFoundError:
-                log.warning("john not available; DictionaryStage cannot run")
-                nonlocal outcome
-                outcome = StageOutcome.FAILED
-
-        async def _run_hashcat(binary: Path, wordlist: Path) -> None:
-            nonlocal outcome, password
-            if ctx.hashcat_mode is None:
+            if runner_kind == "hashcat" and ctx.hashcat_mode is None:
                 log.warning("hashcat_mode is None; skipping hashcat in DictionaryStage")
+                outcome = StageOutcome.SKIPPED
                 return
 
+            # Iterate wordlists cheapest-first, each as a separate run, stopping
+            # on the first FOUND. Wordlists are already in prevalence order; we
+            # never re-sort them.
+            for name, wordlist in wordlists:
+                await on_event(
+                    StageEvent(
+                        ts=time.time(),
+                        kind="log",
+                        payload={"msg": f"Dictionary: trying wordlist {name}"},
+                    )
+                )
+
+                if runner_kind == "hashcat":
+                    assert hashcat_bin is not None
+                    await _run_hashcat(hashcat_bin, name, wordlist)
+                else:
+                    await _run_john(john_bin, name, wordlist)
+
+                if outcome == StageOutcome.FOUND:
+                    return
+
+        async def _run_hashcat(binary: Path, name: str, wordlist: Path) -> None:
+            nonlocal outcome, password
+            assert ctx.hashcat_mode is not None
             runner = HashcatRunner(binary, ctx.work_dir)
             self._active_runner = runner
             result = await runner.run(
@@ -116,15 +155,15 @@ class DictionaryStage:
                 ctx.hash_file,
                 str(wordlist),
                 potfile=ctx.shared_potfile,
-                session=ctx.stage_id,
+                session=f"{ctx.stage_id}_{name}",
                 on_event=on_event,
             )
             self._active_runner = None
-            self._stats = result.stats
+            self._accumulate(result.stats)
             outcome = result.outcome
             password = result.password
 
-        async def _run_john(binary: Path, wordlist: Path) -> None:
+        async def _run_john(binary: Path, name: str, wordlist: Path) -> None:
             nonlocal outcome, password
             fmt = _JOHN_FORMAT_MAP.get(ctx.archive_format, "zip")
             runner = JohnRunner(binary, ctx.work_dir)
@@ -134,11 +173,11 @@ class DictionaryStage:
                 ctx.hash_file,
                 f"--wordlist={wordlist}",
                 potfile=ctx.shared_potfile,
-                session=ctx.stage_id,
+                session=f"{ctx.stage_id}_{name}",
                 on_event=on_event,
             )
             self._active_runner = None
-            self._stats = result.stats
+            self._accumulate(result.stats)
             outcome = result.outcome
             password = result.password
 

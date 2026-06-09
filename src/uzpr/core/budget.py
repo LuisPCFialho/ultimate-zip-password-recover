@@ -21,21 +21,28 @@ FREE_TIER_STAGES: frozenset[int] = frozenset({1, 2, 3, 13})  # no budget cap
 
 class BudgetAllocator:
     """Greedy EV allocator that distributes a paid-time pool proportionally
-    by per-stage prior probabilities, with free-tier stages uncapped."""
+    by per-stage prior probabilities, with free-tier stages uncapped.
+
+    The pool is monotonically decreasing: it starts at ``total_budget_s`` and
+    is debited by the *consumed* time of each paid stage via :meth:`consume`.
+    This guarantees that the sum of all granted paid-stage budgets across a
+    whole session never exceeds ``total_budget_s``.
+    """
 
     def __init__(
         self,
         total_budget_s: float,
         stage_priors: dict[int, float] | None = None,
     ) -> None:
-        self._paid_pool: float = total_budget_s
+        self._pool: float = total_budget_s
         self._priors: dict[int, float] = stage_priors if stage_priors is not None else STAGE_PRIORS
 
     def allocate(self, remaining_stages: list[int]) -> dict[int, float]:
         """Return a budget (seconds) for each stage in *remaining_stages*.
 
         Free-tier stages (1, 2, 3, 13) receive ``float('inf')``.
-        Paid stages share the remaining paid pool in proportion to their prior.
+        Paid stages share the *current* pool in proportion to their prior.
+        No paid grant ever exceeds the current pool.
         """
         result: dict[int, float] = {}
 
@@ -48,16 +55,20 @@ class BudgetAllocator:
             else:
                 prior = self._priors.get(stage_no, 0.0)
                 if paid_weight_sum > 0.0:
-                    result[stage_no] = self._paid_pool * prior / paid_weight_sum
+                    result[stage_no] = min(self._pool, self._pool * prior / paid_weight_sum)
                 else:
                     result[stage_no] = 0.0
 
         return result
 
-    def mark_exhausted(self, stage_no: int, unused_s: float) -> None:
-        """Return *unused_s* seconds back to the paid pool for redistribution."""
-        if stage_no not in FREE_TIER_STAGES and unused_s > 0.0:
-            self._paid_pool += unused_s
+    def consume(self, stage_no: int, consumed_s: float) -> None:
+        """Debit *consumed_s* seconds from the pool for a paid stage.
+
+        Free-tier stages do not draw the paid pool, so this is a no-op for
+        them. Callers may invoke this unconditionally after any stage.
+        """
+        if stage_no not in FREE_TIER_STAGES:
+            self._pool = max(0.0, self._pool - consumed_s)
 
     def mark_found(self, stage_no: int) -> None:
         """No-op — session ends immediately when a password is found."""

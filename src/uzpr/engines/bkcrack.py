@@ -128,14 +128,15 @@ class BkcrackRunner:
     ) -> None:
         """Decrypt the entire archive using the known keys."""
         k0, k1, k2 = keys
+        # bkcrack expects 8-char hex WITHOUT the 0x prefix (e.g. "5b0d2400").
         argv = [
             str(self._binary),
             "-C",
             str(archive),
             "-k",
-            hex(k0),
-            hex(k1),
-            hex(k2),
+            f"{k0:08x}",
+            f"{k1:08x}",
+            f"{k2:08x}",
             "-D",
             str(out),
         ]
@@ -157,12 +158,13 @@ class BkcrackRunner:
         """
         k0, k1, k2 = keys
         lo, hi = length_range
+        # bkcrack expects 8-char hex WITHOUT the 0x prefix (e.g. "5b0d2400").
         argv = [
             str(self._binary),
             "-k",
-            hex(k0),
-            hex(k1),
-            hex(k2),
+            f"{k0:08x}",
+            f"{k1:08x}",
+            f"{k2:08x}",
             "-r",
             f"{lo}..{hi}",
             "?p",

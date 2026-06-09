@@ -24,6 +24,16 @@ _ASSETS: list[tuple[str, str]] = [
     ),
 ]
 
+# Optional, best-effort assets: a 404 / network failure must NOT break the
+# bootstrap. Each is fetched independently and silently skipped on error.
+_OPTIONAL_ASSETS: list[tuple[str, str]] = [
+    (
+        "https://raw.githubusercontent.com/rarecoil/pantagrule/master/rules/"
+        "pantagrule.popular.rule",
+        "packaging/rules/pantagrule.popular.rule",
+    ),
+]
+
 
 def _ensure_httpx() -> None:
     try:
@@ -53,6 +63,32 @@ def download_assets(root: Path | None = None) -> None:
         dest.write_bytes(resp.content)
         size_kb = dest.stat().st_size / 1024
         click.echo(f"  saved {dest.relative_to(root)}  ({size_kb:.1f} KB)")
+
+    download_optional_assets(root)
+
+
+def download_optional_assets(root: Path) -> None:
+    """Fetch best-effort assets; log and continue on any failure (e.g. 404)."""
+    import click
+    import httpx
+
+    for url, rel_path in _OPTIONAL_ASSETS:
+        dest = root / rel_path
+        if dest.exists() and dest.stat().st_size > 0:
+            click.echo(f"  skip  {dest.relative_to(root)}  (already exists)")
+            continue
+
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            click.echo(f"  fetch {url}  (optional)")
+            with httpx.Client(follow_redirects=True, timeout=60) as client:
+                resp = client.get(url)
+                resp.raise_for_status()
+            dest.write_bytes(resp.content)
+            size_kb = dest.stat().st_size / 1024
+            click.echo(f"  saved {dest.relative_to(root)}  ({size_kb:.1f} KB)")
+        except Exception as exc:
+            click.echo(f"  skip  {rel_path}  (optional, unavailable: {exc})")
 
 
 def main() -> None:

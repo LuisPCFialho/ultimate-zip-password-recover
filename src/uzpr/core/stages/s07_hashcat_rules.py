@@ -29,9 +29,13 @@ _SKIPPED_PLAN = StagePlan(
     can_resume=False,
 )
 
+# Rule packs in escalation order: cheapest (smallest, highest yield-per-rule)
+# first, most-expensive last. Stop on the first FOUND. Missing packs (e.g.
+# pantagrule, which is download-on-demand and may be absent) are skipped.
 _RULE_PACKS: tuple[str, ...] = (
+    "best66.rule",
     "OneRuleToRuleThemAll.rule",
-    "best64.rule",
+    "pantagrule.popular.rule",
     "dive.rule",
 )
 
@@ -140,6 +144,14 @@ class HashcatRulesStage:
                 if rule_path is None:
                     log.info("Rule pack %s not found; skipping this pack", rule_name)
                     continue
+
+                await on_event(
+                    StageEvent(
+                        ts=time.time(),
+                        kind="log",
+                        payload={"msg": f"Rules: trying pack {rule_name}"},
+                    )
+                )
 
                 runner = HashcatRunner(hashcat_bin, ctx.work_dir)
                 self._active_runner = runner

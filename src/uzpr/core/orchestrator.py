@@ -239,6 +239,8 @@ class Orchestrator:
                     stage_no=stage.stage_no,
                     elapsed_s=elapsed,
                 )
+                # Debit the time this stage actually consumed.
+                allocator.consume(stage.stage_no, elapsed)
                 remaining_stage_nos = [n for n in remaining_stage_nos if n != stage.stage_no]
                 continue
 
@@ -254,9 +256,8 @@ class Orchestrator:
                 remaining_stage_nos = [n for n in remaining_stage_nos if n != stage.stage_no]
                 continue
 
-            # EXHAUSTED — return unused budget to the paid pool.
-            unused = max(0.0, budget - elapsed)
-            allocator.mark_exhausted(stage.stage_no, unused)
+            # EXHAUSTED — debit the time this stage actually consumed.
+            allocator.consume(stage.stage_no, elapsed)
             remaining_stage_nos = [n for n in remaining_stage_nos if n != stage.stage_no]
 
         # All stages done without finding the password.
