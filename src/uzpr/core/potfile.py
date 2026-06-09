@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 if sys.platform == "win32":
     import msvcrt

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unicodedata
-
 
 def passes_filters(
     s: str,
@@ -63,7 +61,4 @@ def passes_filters(
     if "lower" in must_have and not any(c.islower() for c in s):
         return False
 
-    if "symbol" in must_have and not any(not c.isalnum() for c in s):
-        return False
-
-    return True
+    return not ("symbol" in must_have and not any(not c.isalnum() for c in s))

@@ -28,9 +28,9 @@ class BloomFilter:
         """
         ln2 = math.log(2)
         # Optimal bit-array size: m = -n * ln(p) / (ln2)^2
-        m_bits = int(math.ceil(-capacity * math.log(fp_rate) / (ln2 ** 2)))
+        m_bits = math.ceil(-capacity * math.log(fp_rate) / (ln2 ** 2))
         # Optimal number of hash functions: k = (m / n) * ln2
-        self._k = max(1, int(round((m_bits / capacity) * ln2)))
+        self._k = max(1, round((m_bits / capacity) * ln2))
         self._m = m_bits
         self._byte_size = math.ceil(m_bits / 8)
 

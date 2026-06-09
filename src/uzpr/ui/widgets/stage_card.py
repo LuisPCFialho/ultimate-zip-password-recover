@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 try:
-    from qfluentwidgets import CardWidget, BodyLabel, CaptionLabel, ProgressBar
+    from qfluentwidgets import BodyLabel, CaptionLabel, CardWidget, ProgressBar
 except ImportError:
     from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]

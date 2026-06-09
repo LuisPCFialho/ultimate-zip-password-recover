@@ -2,13 +2,11 @@ from __future__ import annotations
 
 """History page — filterable table of past sessions with detail dialog."""
 
-import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QApplication,
     QHBoxLayout,
     QHeaderView,
     QTableWidgetItem,
@@ -20,20 +18,14 @@ try:
     from qfluentwidgets import (
         BodyLabel,
         CaptionLabel,
-        CardWidget,
         InfoBar,
         InfoBarPosition,
         MessageBox,
-        PrimaryPushButton,
         PushButton,
-        ScrollArea,
         SearchLineEdit,
-        StrongBodyLabel,
-        SubtitleLabel,
         TableWidget,
         TitleLabel,
         ToolButton,
-        TransparentToolButton,
     )
     try:
         from qfluentwidgets import FluentIcon as FIF
@@ -43,20 +35,14 @@ try:
 except ImportError:
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     InfoBar = None  # type: ignore[assignment,misc]
     InfoBarPosition = None  # type: ignore[assignment,misc]
     MessageBox = None  # type: ignore[assignment,misc]
-    from PySide6.QtWidgets import QPushButton as PrimaryPushButton  # type: ignore[assignment]
-    from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
-    from PySide6.QtWidgets import QScrollArea as ScrollArea  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLineEdit as SearchLineEdit  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as SubtitleLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QTableWidget as TableWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as TitleLabel  # type: ignore[assignment]
+    from PySide6.QtWidgets import QLineEdit as SearchLineEdit  # type: ignore[assignment]
+    from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
     from PySide6.QtWidgets import QPushButton as ToolButton  # type: ignore[assignment]
-    from PySide6.QtWidgets import QPushButton as TransparentToolButton  # type: ignore[assignment]
+    from PySide6.QtWidgets import QTableWidget as TableWidget  # type: ignore[assignment]
     _HAS_FIF = False
 
 if TYPE_CHECKING:

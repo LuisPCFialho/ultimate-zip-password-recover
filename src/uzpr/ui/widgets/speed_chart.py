@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 
-from PySide6.QtCore import Qt, QRect, QSize
+from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
@@ -37,7 +37,7 @@ class SpeedChart(QWidget):
         self._samples.clear()
         self.update()
 
-    def paintEvent(self, event: object) -> None:  # noqa: ANN001
+    def paintEvent(self, event: object) -> None:
         if not self.isVisible():
             return
 

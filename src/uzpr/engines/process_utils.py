@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import sys
+import contextlib
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -54,20 +55,16 @@ async def terminate_with_grace(
     *sigterm_after_s* seconds it is killed unconditionally after a further
     *sigkill_after_s* seconds.
     """
-    try:
+    with contextlib.suppress(Exception):
         proc.terminate()
-    except Exception:
-        pass
 
     with anyio.move_on_after(sigterm_after_s):
         await proc.wait()
         return
 
     # Still running – escalate to kill.
-    try:
+    with contextlib.suppress(Exception):
         proc.kill()
-    except Exception:
-        pass
 
     with anyio.move_on_after(sigkill_after_s):
         await proc.wait()

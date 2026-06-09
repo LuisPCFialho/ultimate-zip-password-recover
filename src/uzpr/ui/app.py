@@ -3,7 +3,6 @@ from __future__ import annotations
 """GUI entry point called from uzpr.__main__.run_gui()."""
 
 import asyncio
-import sys
 
 import qasync
 from PySide6.QtCore import Qt

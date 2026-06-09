@@ -8,10 +8,10 @@ import anyio
 
 from uzpr.core.stages.protocol import (
     EventSink,
-    StagePlan,
     StageContext,
     StageEvent,
     StageOutcome,
+    StagePlan,
     StageResult,
     StageStats,
 )
@@ -97,7 +97,6 @@ class PartialMaskStage:
         async def _run_native(mask: str, ctx: StageContext, on_event: EventSink) -> None:
             nonlocal outcome, password
             # Split mask into literal parts and placeholder positions
-            prefix_parts: list[str] = []
             positions: list[int] = []
             for i, ch in enumerate(mask):
                 if ch == "?":
@@ -111,7 +110,7 @@ class PartialMaskStage:
 
             for combo in itertools.product(charset, repeat=len(positions)):
                 candidate_chars = list(mask)
-                for idx, ch in zip(positions, combo):
+                for idx, ch in zip(positions, combo, strict=False):
                     candidate_chars[idx] = ch
                 candidate = "".join(candidate_chars)
                 batch.append(candidate)

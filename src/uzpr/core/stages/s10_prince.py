@@ -8,16 +8,16 @@ import anyio.abc
 
 from uzpr.core.stages.protocol import (
     EventSink,
-    StagePlan,
     StageContext,
     StageEvent,
     StageOutcome,
+    StagePlan,
     StageResult,
     StageStats,
 )
 from uzpr.engines.hashcat import HashcatRunner
-from uzpr.engines.tool_manager import find_tool, ToolNotFoundError
 from uzpr.engines.process_utils import open_managed_process, terminate_with_grace
+from uzpr.engines.tool_manager import ToolNotFoundError, find_tool
 from uzpr.util.logging import get_logger
 from uzpr.util.paths import install_dir
 
@@ -202,7 +202,7 @@ async def _run_prince_pipeline(
     import json
     import time as _time
 
-    from uzpr.core.stages.protocol import StageStats, StageEvent, StageOutcome, StageResult
+    from uzpr.core.stages.protocol import StageOutcome, StageResult, StageStats
 
     # Launch pp64 reading from elements.txt
     pp64_argv = [str(pp64_binary)]

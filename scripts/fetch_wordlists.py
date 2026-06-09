@@ -9,7 +9,6 @@ Usage::
     python scripts/fetch_wordlists.py fetch rules
 """
 
-import io
 import tarfile
 from pathlib import Path
 

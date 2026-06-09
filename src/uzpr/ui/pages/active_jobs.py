@@ -7,7 +7,7 @@ from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QApplication,
@@ -26,25 +26,23 @@ try:
         CardWidget,
         InfoBar,
         InfoBarPosition,
-        ProgressBar,
         PrimaryPushButton,
+        ProgressBar,
         PushButton,
         StrongBodyLabel,
-        SubtitleLabel,
         TitleLabel,
     )
 except ImportError:
+    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     InfoBar = None  # type: ignore[assignment,misc]
     InfoBarPosition = None  # type: ignore[assignment,misc]
+    from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
+    from PySide6.QtWidgets import QLabel as TitleLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QProgressBar as ProgressBar  # type: ignore[assignment]
     from PySide6.QtWidgets import QPushButton as PrimaryPushButton  # type: ignore[assignment]
     from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as SubtitleLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as TitleLabel  # type: ignore[assignment]
 
 from uzpr.ui.widgets.stage_card import StageCard
 
@@ -142,7 +140,7 @@ class _CandidateTicker(QWidget):
 
     def push(self, candidate: str) -> None:
         texts = [lbl.text() for lbl in self._labels[1:]] + [candidate]
-        for lbl, text in zip(self._labels, texts):
+        for lbl, text in zip(self._labels, texts, strict=False):
             lbl.setText(text)
             lbl.setStyleSheet(
                 "font-family: 'Consolas', monospace;"
@@ -285,7 +283,7 @@ class ActiveJobsPage(QWidget):
     # Public API
     # ------------------------------------------------------------------
 
-    def connect_to_session(self, session_id: str, coalescer: "EventCoalescer") -> None:
+    def connect_to_session(self, session_id: str, coalescer: EventCoalescer) -> None:
         """Called by main_window when a session starts."""
         self._session_id = session_id
         self._start_time = time.time()
@@ -314,11 +312,11 @@ class ActiveJobsPage(QWidget):
     # Event handling
     # ------------------------------------------------------------------
 
-    def _on_events(self, batch: list["StageEvent"]) -> None:
+    def _on_events(self, batch: list[StageEvent]) -> None:
         for event in batch:
             self._process_event(event)
 
-    def _process_event(self, event: "StageEvent") -> None:
+    def _process_event(self, event: StageEvent) -> None:
         kind = event.kind
         payload = event.payload
 

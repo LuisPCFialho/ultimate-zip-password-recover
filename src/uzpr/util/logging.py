@@ -35,7 +35,7 @@ def configure(log_dir: Path, level: str = "INFO") -> None:
     file_handler.setLevel(numeric_level)
     file_handler.setFormatter(
         structlog.stdlib.ProcessorFormatter(
-            processors=shared + [structlog.processors.JSONRenderer()],
+            processors=[*shared, structlog.processors.JSONRenderer()],
         )
     )
 
@@ -43,7 +43,7 @@ def configure(log_dir: Path, level: str = "INFO") -> None:
     console_handler.setLevel(numeric_level)
     console_handler.setFormatter(
         structlog.stdlib.ProcessorFormatter(
-            processors=shared + [structlog.dev.ConsoleRenderer()],
+            processors=[*shared, structlog.dev.ConsoleRenderer()],
         )
     )
 

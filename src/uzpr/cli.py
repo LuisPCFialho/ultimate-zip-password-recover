@@ -79,8 +79,8 @@ async def _run_crack(
     budget: int,
     low_power: bool,
 ) -> None:
-    from uzpr.core.stages.protocol import Hints
     from uzpr.app import build_application
+    from uzpr.core.stages.protocol import Hints
 
     hints = Hints(
         full_password=password,
@@ -121,8 +121,7 @@ async def _run_crack(
 def tools() -> None:
     """Show status of bundled tools (hashcat, john, bkcrack)."""
     try:
-        from uzpr.engines.tool_manager import list_status
-        from uzpr.engines.tool_manager import ToolStatus
+        from uzpr.engines.tool_manager import ToolStatus, list_status
     except ImportError as exc:
         click.echo(f"[uzpr] Cannot import tool_manager: {exc}", err=True)
         sys.exit(1)
@@ -135,8 +134,8 @@ def tools() -> None:
 def _print_tools_table(statuses: list[object]) -> None:
     """Print tool statuses as a rich table, falling back to plain text."""
     try:
-        from rich.table import Table
         from rich.console import Console
+        from rich.table import Table
 
         table = Table(title="Bundled Tools", show_header=True, header_style="bold cyan")
         table.add_column("Tool", style="bold")

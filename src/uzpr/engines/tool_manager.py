@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import sys
 import zipfile
 from pathlib import Path
@@ -84,7 +85,7 @@ def _candidate_dirs() -> list[Path]:
 
 
 def _exe_name(name: str) -> str:
-    subdir_parts, exe_win, exe_posix = _TOOL_MAP[name]
+    _subdir_parts, exe_win, exe_posix = _TOOL_MAP[name]
     return exe_win if sys.platform == "win32" else exe_posix
 
 
@@ -143,10 +144,8 @@ async def ensure_tool(name: ToolName) -> Path:
     log.info("extracting_tool_package", package=package, dest=str(dest_dir))
     await _extract(archive_path, dest_dir)
 
-    try:
+    with contextlib.suppress(OSError):
         archive_path.unlink()
-    except OSError:
-        pass
 
     return find_tool(name)
 
@@ -190,8 +189,8 @@ async def _extract(archive: Path, dest: Path) -> None:
     """Extract a .7z or .zip archive into *dest*."""
     suffix = archive.suffix.lower()
     if suffix == ".7z":
-        import py7zr  # type: ignore[import-untyped]
         import anyio
+        import py7zr  # type: ignore[import-untyped]
 
         def _do_extract() -> None:
             with py7zr.SevenZipFile(archive, mode="r") as sz:

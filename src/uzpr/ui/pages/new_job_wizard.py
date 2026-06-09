@@ -6,7 +6,7 @@ import asyncio
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QDate, Signal
+from PySide6.QtCore import QDate, Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QDateEdit,
@@ -14,9 +14,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QScrollArea,
-    QSizePolicy,
     QSlider,
-    QSpacerItem,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -31,33 +29,26 @@ try:
         InfoBar,
         InfoBarPosition,
         LineEdit,
-        PasswordLineEdit,
         PrimaryPushButton,
-        ProgressBar,
         PushButton,
         StrongBodyLabel,
         SubtitleLabel,
-        TitleLabel,
     )
 except ImportError:
+    from PySide6.QtWidgets import QComboBox as ComboBox  # type: ignore[assignment]
+    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
-    from PySide6.QtWidgets import QComboBox as ComboBox  # type: ignore[assignment]
     InfoBar = None  # type: ignore[assignment,misc]
     InfoBarPosition = None  # type: ignore[assignment,misc]
-    from PySide6.QtWidgets import QLineEdit as LineEdit  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLineEdit as PasswordLineEdit  # type: ignore[assignment]
-    from PySide6.QtWidgets import QPushButton as PrimaryPushButton  # type: ignore[assignment]
-    from PySide6.QtWidgets import QProgressBar as ProgressBar  # type: ignore[assignment]
-    from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as SubtitleLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as TitleLabel  # type: ignore[assignment]
+    from PySide6.QtWidgets import QLineEdit as LineEdit  # type: ignore[assignment]
+    from PySide6.QtWidgets import QPushButton as PrimaryPushButton  # type: ignore[assignment]
+    from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
 
 if TYPE_CHECKING:
     from uzpr.archive.detect import ArchiveInfo
-    from uzpr.core.stages.protocol import Hints
 
 _BUDGET_OPTIONS: list[tuple[str, int]] = [
     ("1 min",  60),
@@ -524,8 +515,8 @@ class _StepStrategy(QWidget):
         # Stage table
         layout.addWidget(StrongBodyLabel("Attack stages"))
         try:
-            from qfluentwidgets import TableWidget
             from PySide6.QtWidgets import QTableWidgetItem
+            from qfluentwidgets import TableWidget
 
             self._table = TableWidget()
             self._table.setColumnCount(5)
@@ -763,8 +754,8 @@ class NewJobWizardPage(QWidget):
         low_power: bool,
     ) -> None:
         try:
-            from uzpr.core.stages.protocol import Hints  # lazy
             from uzpr.app import build_application  # lazy
+            from uzpr.core.stages.protocol import Hints  # lazy
 
             hints = Hints(**hints_kw)  # type: ignore[arg-type]
             app = build_application()

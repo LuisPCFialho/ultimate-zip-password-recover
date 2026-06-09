@@ -7,7 +7,7 @@ from uzpr.core.dedup import BloomFilter
 from uzpr.core.stages.protocol import Hints
 from uzpr.wordlist.dates import encode_dates
 from uzpr.wordlist.filters import passes_filters
-from uzpr.wordlist.mutations import case_variants, leet_variants, suffix_combos, prefix_combos
+from uzpr.wordlist.mutations import case_variants, leet_variants, suffix_combos
 
 # Default suffixes used when hints carry none
 _DEFAULT_SUFFIXES: tuple[str, ...] = (

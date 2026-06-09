@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass(slots=True)
@@ -10,7 +9,7 @@ class SessionRow:
     archive_path: str
     archive_sha256: str
     archive_format: str
-    hashcat_mode: Optional[int]
+    hashcat_mode: int | None
     total_budget_s: float
     hints_json: bytes
     status: str
@@ -31,8 +30,8 @@ class StageRow:
     prior_p: float
     candidates_tested: int
     elapsed_s: float
-    restore_token: Optional[str]
-    last_heartbeat_at: Optional[float]
+    restore_token: str | None
+    last_heartbeat_at: float | None
     failure_count: int
 
 
@@ -42,10 +41,10 @@ class AttemptRow:
     session_id: str
     stage_id: str
     started_at: float
-    ended_at: Optional[float]
-    outcome: Optional[str]
+    ended_at: float | None
+    outcome: str | None
     candidates_tested: int
-    peak_rate: Optional[float]
+    peak_rate: float | None
 
 
 @dataclass(slots=True)
@@ -54,14 +53,14 @@ class ResultRow:
     password: str
     found_by_stage_id: str
     found_at: float
-    bkcrack_keys: Optional[str]
+    bkcrack_keys: str | None
 
 
 @dataclass(slots=True)
 class EventRow:
     id: int
     session_id: str
-    stage_id: Optional[str]
+    stage_id: str | None
     ts: float
     level: str
     payload_json: str

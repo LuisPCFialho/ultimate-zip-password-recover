@@ -90,10 +90,7 @@ class Orchestrator:
             if not hash_file.exists():
                 hash_file = await self._extract_hash(archive_path, work_dir)
 
-            if row is None:
-                stage_id = f"{session_id}_{stage.stage_no}"
-            else:
-                stage_id = row.id
+            stage_id = f"{session_id}_{stage.stage_no}" if row is None else row.id
 
             restore_token: str | None = row.restore_token if row is not None else None
 
@@ -265,16 +262,13 @@ class Orchestrator:
 
     async def _extract_hash(self, archive_path: Path, work_dir: Path) -> Path:
         """Run zip2john / rar2john to produce the hash file, returning its path."""
-        from uzpr.engines.tool_manager import find_tool, ToolNotFoundError
+        from uzpr.engines.tool_manager import ToolNotFoundError, find_tool
 
         stem = archive_path.stem
         hash_file = work_dir / f"{stem}.hash"
         suffix = archive_path.suffix.lower()
 
-        if suffix in (".zip",):
-            tool_name = "zip2john"
-        else:
-            tool_name = "rar2john"
+        tool_name = "zip2john" if suffix in (".zip",) else "rar2john"
 
         try:
             tool = find_tool(tool_name)  # type: ignore[arg-type]

@@ -6,10 +6,10 @@ import anyio
 
 from uzpr.core.stages.protocol import (
     EventSink,
-    StagePlan,
     StageContext,
     StageEvent,
     StageOutcome,
+    StagePlan,
     StageResult,
     StageStats,
 )
@@ -77,8 +77,8 @@ class BkcrackStage:
             )
 
         # Resolve the target entry inside the archive
-        from uzpr.archive.zip_inspect import pick_attack_target
         from uzpr.archive.detect import detect_archive
+        from uzpr.archive.zip_inspect import pick_attack_target
 
         archive_info = detect_archive(ctx.archive_path)
         entry = pick_attack_target(archive_info)

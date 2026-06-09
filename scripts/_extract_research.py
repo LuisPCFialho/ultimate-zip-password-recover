@@ -1,7 +1,6 @@
 """One-shot extractor: parse the workflow output JSON and write the three docs."""
 
 import json
-import re
 import sys
 from pathlib import Path
 

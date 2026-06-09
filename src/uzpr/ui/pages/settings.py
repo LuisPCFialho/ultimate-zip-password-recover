@@ -13,18 +13,17 @@ from qfluentwidgets import (
     BodyLabel,
     ComboBoxSettingCard,
     ExpandLayout,
-    FluentIcon as FIF,
-    HyperlinkCard,
-    OptionsSettingCard,
     PrimaryPushButton,
     PushSettingCard,
     ScrollArea,
     SettingCardGroup,
     SwitchSettingCard,
-    setTheme,
     Theme,
+    setTheme,
 )
-
+from qfluentwidgets import (
+    FluentIcon as FIF,
+)
 
 _SETTINGS_DIR = Path(platformdirs.user_data_dir("UltimateZipPasswordRecover"))
 _SETTINGS_FILE = _SETTINGS_DIR / "settings.json"
@@ -337,8 +336,9 @@ class SettingsPage(ScrollArea):
 
     def _on_check_updates(self) -> None:
         try:
-            from uzpr.update.checker import check_for_updates  # type: ignore[import]
             import asyncio
+
+            from uzpr.update.checker import check_for_updates  # type: ignore[import]
 
             asyncio.ensure_future(check_for_updates())
         except Exception:

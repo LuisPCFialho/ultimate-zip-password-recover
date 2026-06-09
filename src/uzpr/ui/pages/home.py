@@ -22,19 +22,17 @@ try:
         CardWidget,
         PrimaryPushButton,
         ScrollArea,
-        StrongBodyLabel,
         SubtitleLabel,
         TitleLabel,
     )
 except ImportError:
+    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as BodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as CaptionLabel  # type: ignore[assignment]
-    from PySide6.QtWidgets import QFrame as CardWidget  # type: ignore[assignment]
-    from PySide6.QtWidgets import QPushButton as PrimaryPushButton  # type: ignore[assignment]
-    from PySide6.QtWidgets import QScrollArea as ScrollArea  # type: ignore[assignment]
-    from PySide6.QtWidgets import QLabel as StrongBodyLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as SubtitleLabel  # type: ignore[assignment]
     from PySide6.QtWidgets import QLabel as TitleLabel  # type: ignore[assignment]
+    from PySide6.QtWidgets import QPushButton as PrimaryPushButton  # type: ignore[assignment]
+    from PySide6.QtWidgets import QScrollArea as ScrollArea  # type: ignore[assignment]
 
 from uzpr.ui.widgets.drop_zone import DropZone
 
@@ -96,7 +94,7 @@ class _StatCard(CardWidget):
 class _RecentJobRow(QFrame):
     clicked: Signal = Signal(str)  # session_id
 
-    def __init__(self, session: "SessionRow", parent: QWidget | None = None) -> None:
+    def __init__(self, session: SessionRow, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._session_id = session.id
         self.setCursor(Qt.CursorShape.PointingHandCursor)

@@ -7,10 +7,10 @@ import anyio
 
 from uzpr.core.stages.protocol import (
     EventSink,
-    StagePlan,
     StageContext,
     StageEvent,
     StageOutcome,
+    StagePlan,
     StageResult,
     StageStats,
 )

@@ -7,10 +7,10 @@ import anyio
 
 from uzpr.core.stages.protocol import (
     EventSink,
-    StagePlan,
     StageContext,
     StageEvent,
     StageOutcome,
+    StagePlan,
     StageResult,
     StageStats,
 )
@@ -147,7 +147,7 @@ class HashcatRulesStage:
                     ctx.hashcat_mode,  # type: ignore[arg-type]
                     0,  # attack mode: straight
                     ctx.hash_file,
-                    f"-r",
+                    "-r",
                     str(rule_path),
                     str(base_wordlist),
                     potfile=ctx.shared_potfile,

@@ -44,7 +44,7 @@ class CandidateTicker(QWidget):
         # Pad to n slots
         items += [""] * (self._n - len(items))
 
-        for i, (label, text) in enumerate(zip(self._labels, items)):
+        for i, (label, text) in enumerate(zip(self._labels, items, strict=False)):
             label.setText(text)
             opacity = _opacity_for_index(i, self._n)
             label.setStyleSheet(f"color: rgba(220, 220, 220, {opacity}%);")

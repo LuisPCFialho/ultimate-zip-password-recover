@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-from typing import Awaitable, Callable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
-class StageOutcome(str, Enum):
+class StageOutcome(StrEnum):
     FOUND = "found"
     EXHAUSTED = "exhausted"
     ABORTED = "aborted"

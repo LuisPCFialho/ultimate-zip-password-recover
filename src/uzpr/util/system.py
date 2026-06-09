@@ -3,7 +3,6 @@ from __future__ import annotations
 import platform
 import subprocess
 import sys
-from typing import Any
 
 import psutil
 
@@ -79,7 +78,7 @@ def _parse_wmic() -> list[dict[str, object]]:
     if result.returncode != 0:
         return []
     gpus: list[dict[str, object]] = []
-    lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
+    lines = [ln for ln in result.stdout.strip().splitlines() if ln.strip()]
     # First non-empty line is the header: Node,AdapterRAM,Name
     if not lines:
         return []

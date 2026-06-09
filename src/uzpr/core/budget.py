@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-
 STAGE_PRIORS: dict[int, float] = {
     1: 1.0, 2: 0.8, 3: 0.4,  # oracle / free tier
     4: 0.18, 5: 0.20, 6: 0.12, 7: 0.15,

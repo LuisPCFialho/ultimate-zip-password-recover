@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
-from typing import Callable
+from collections.abc import Callable
 
 from PySide6.QtCore import QObject, QTimer, Signal
 

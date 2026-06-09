@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import pytest
 from uzpr.wordlist.dates import encode_dates
-from uzpr.wordlist.mutations import case_variants, leet_variants
 from uzpr.wordlist.filters import passes_filters
+from uzpr.wordlist.mutations import case_variants, leet_variants
 
 
 def test_encode_dates_basic() -> None:

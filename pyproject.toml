@@ -105,11 +105,22 @@ select = [
     "RUF",           # ruff-specific
 ]
 ignore = [
-    "E501",  # line length (we set 100 above; long strings ok)
+    "E501",   # line length (we set 100 above; long strings ok)
+    "E402",   # module-level import not at top — expected with from __future__ + module docstring
+    "RUF001", # ambiguous unicode in string literals — intentional in comments/docs
+    "RUF002", # ambiguous unicode in docstrings — intentional (×, –, etc.)
+    "RUF003", # ambiguous unicode in comments — intentional
+    "RUF006", # asyncio.ensure_future result not stored — fire-and-forget in UI layer
+    "SIM105", # contextlib.suppress style — explicit try/except is clearer in engine code
+    "SIM102", # single if statement — readability preference
+    "SIM113", # enumerate() — readability preference
+    "SIM117", # single with statement — readability preference
+    "UP042",  # StrEnum — requires Python 3.11+, kept for 3.11 compat via str+Enum
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B011", "PT011"]
+"scripts/*" = ["INP001"]
 
 # -- black --------------------------------------------------------------------
 [tool.black]

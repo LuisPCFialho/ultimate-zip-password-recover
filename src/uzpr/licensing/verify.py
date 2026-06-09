@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from uzpr.util.logging import get_logger
@@ -26,7 +26,7 @@ _PUBLIC_KEYS: dict[str, str] = {
 }
 
 
-class LicenseStatus(str, Enum):
+class LicenseStatus(StrEnum):
     VALID = "valid"
     EXPIRED = "expired"
     FORGED = "forged"
@@ -83,8 +83,8 @@ class LicenseChecker:
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
         try:
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
             from cryptography.exceptions import InvalidSignature
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
             pubkey_bytes = bytes.fromhex(pubkey_hex)
             public_key: Ed25519PublicKey = Ed25519PublicKey.from_public_bytes(pubkey_bytes)

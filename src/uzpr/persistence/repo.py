@@ -5,16 +5,13 @@ import sqlite3
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import anyio.to_thread
 
-from uzpr.core.hints import serialize_hints, Hints
+from uzpr.core.hints import Hints, serialize_hints
 from uzpr.persistence.encryption import dpapi_encrypt
 from uzpr.persistence.models import (
-    AttemptRow,
-    EventRow,
-    ResultRow,
     SessionRow,
     StageRow,
 )
@@ -185,7 +182,7 @@ class SessionRepo:
             raise KeyError(f"Session not found: {session_id}")
         return _row_to_session(row)
 
-    def _sync_list_sessions(self, status: Optional[str]) -> list[SessionRow]:
+    def _sync_list_sessions(self, status: str | None) -> list[SessionRow]:
         if status is None:
             rows = self._conn.execute("SELECT * FROM sessions").fetchall()
         else:
@@ -213,7 +210,7 @@ class SessionRepo:
         if not fields:
             return
         set_clause = ", ".join(f"{k} = ?" for k in fields)
-        values = list(fields.values()) + [stage_id]
+        values = [*list(fields.values()), stage_id]
         self._conn.execute(
             f"UPDATE stages SET {set_clause} WHERE id = ?", values
         )
@@ -226,7 +223,7 @@ class SessionRepo:
         ended_at: float,
         outcome: str,
         candidates: int,
-        peak_rate: Optional[float],
+        peak_rate: float | None,
     ) -> None:
         stage_row = self._conn.execute(
             "SELECT session_id FROM stages WHERE id = ?", (stage_id,)
@@ -250,7 +247,7 @@ class SessionRepo:
         session_id: str,
         password: str,
         stage_id: str,
-        bkcrack_keys: Optional[str],
+        bkcrack_keys: str | None,
     ) -> None:
         now = time.time()
         self._conn.execute(
@@ -270,7 +267,7 @@ class SessionRepo:
     def _sync_append_event(
         self,
         session_id: str,
-        stage_id: Optional[str],
+        stage_id: str | None,
         level: str,
         payload: dict[str, object],
     ) -> None:
@@ -304,7 +301,7 @@ class SessionRepo:
             lambda: self._sync_get_session(session_id)
         )
 
-    async def list_sessions(self, status: Optional[str] = None) -> list[SessionRow]:
+    async def list_sessions(self, status: str | None = None) -> list[SessionRow]:
         return await anyio.to_thread.run_sync(
             lambda: self._sync_list_sessions(status)
         )
@@ -331,7 +328,7 @@ class SessionRepo:
         ended_at: float,
         outcome: str,
         candidates: int,
-        peak_rate: Optional[float],
+        peak_rate: float | None,
     ) -> None:
         await anyio.to_thread.run_sync(
             lambda: self._sync_record_attempt(
@@ -344,7 +341,7 @@ class SessionRepo:
         session_id: str,
         password: str,
         stage_id: str,
-        bkcrack_keys: Optional[str] = None,
+        bkcrack_keys: str | None = None,
     ) -> None:
         await anyio.to_thread.run_sync(
             lambda: self._sync_record_result(session_id, password, stage_id, bkcrack_keys)
@@ -353,7 +350,7 @@ class SessionRepo:
     async def append_event(
         self,
         session_id: str,
-        stage_id: Optional[str],
+        stage_id: str | None,
         level: str,
         payload: dict[str, object],
     ) -> None:

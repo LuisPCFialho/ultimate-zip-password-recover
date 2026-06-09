@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import struct
-import tempfile
 from pathlib import Path
 
-import pytest
 from uzpr.archive.detect import detect_archive
 
 

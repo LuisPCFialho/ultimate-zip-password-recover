@@ -6,7 +6,6 @@ import hmac
 import platform
 import subprocess
 import sys
-from typing import NamedTuple
 
 from uzpr.util.logging import get_logger
 
