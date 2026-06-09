@@ -1,0 +1,22 @@
+from __future__ import annotations
+
+import hashlib
+from pathlib import Path
+
+import blake3  # type: ignore[import-untyped]
+
+_CHUNK = 65536  # 64 KB
+
+
+def blake3_trunc16(s: str) -> bytes:
+    """Hash *s* (UTF-8) with BLAKE3 and return the first 16 bytes."""
+    return blake3.blake3(s.encode()).digest()[:16]
+
+
+def sha256_file(path: Path) -> str:
+    """Return the hex SHA-256 digest of a file, reading in 64 KB chunks."""
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        while chunk := fh.read(_CHUNK):
+            h.update(chunk)
+    return h.hexdigest()
