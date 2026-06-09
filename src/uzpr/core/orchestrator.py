@@ -37,6 +37,10 @@ class Orchestrator:
         self._capability = capability
         self._stages = stages
         self._active_stages: dict[str, Stage] = {}
+        # Sessions the user explicitly paused/cancelled. Used to distinguish a
+        # genuine user-initiated ABORT from a per-stage budget timeout (which
+        # should let the cascade continue to the next stage).
+        self._user_stopped: set[str] = set()
 
     # ------------------------------------------------------------------
     # Public async API
@@ -44,6 +48,7 @@ class Orchestrator:
 
     async def run_session(self, session_id: str, on_event: EventSink) -> StageResult:
         """Drive all cascade stages for *session_id*, emitting events via *on_event*."""
+        self._user_stopped.discard(session_id)
         session = await self._repo.get_session(session_id)
         stage_rows = await self._repo.list_stages(session_id)
 
@@ -222,8 +227,20 @@ class Orchestrator:
                 return result
 
             if result.outcome == StageOutcome.ABORTED:
-                await self._repo.update_session_status(session_id, "paused")
-                return result
+                if session_id in self._user_stopped:
+                    # Genuine user-initiated pause/cancel — stop the cascade.
+                    await self._repo.update_session_status(session_id, "paused")
+                    return result
+                # Per-stage budget timeout — treat like EXHAUSTED and continue
+                # to the next stage in the cascade.
+                log.info(
+                    "stage_budget_timeout_continuing",
+                    session_id=session_id,
+                    stage_no=stage.stage_no,
+                    elapsed_s=elapsed,
+                )
+                remaining_stage_nos = [n for n in remaining_stage_nos if n != stage.stage_no]
+                continue
 
             if result.outcome == StageOutcome.FAILED:
                 log.warning(
@@ -255,6 +272,7 @@ class Orchestrator:
 
     async def pause(self, session_id: str) -> None:
         """Request the currently-running stage for *session_id* to stop."""
+        self._user_stopped.add(session_id)
         stage = self._active_stages.get(session_id)
         if stage is not None:
             await stage.cancel()
@@ -265,6 +283,7 @@ class Orchestrator:
         ``run_session`` already skips stages whose DB status is 'found',
         'exhausted', or 'skipped', so this is a straight delegation.
         """
+        self._user_stopped.discard(session_id)
         return await self.run_session(session_id, on_event)
 
     async def cancel(self, session_id: str) -> None:
