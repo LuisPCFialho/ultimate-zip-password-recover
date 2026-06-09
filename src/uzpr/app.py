@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 from uzpr.core.capability import CapabilityProbe
@@ -13,7 +14,14 @@ from uzpr.util.paths import db_path, logs_dir, tools_dir
 log = get_logger(__name__)
 
 
-def build_application() -> Orchestrator:
+@dataclass(slots=True)
+class AppState:
+    orchestrator: Orchestrator
+    repo: SessionRepo
+    capability: CapabilityProbe
+
+
+def build_application() -> AppState:
     """Construct and wire together the full application graph."""
 
     # Configure structured logging first so everything below can emit logs.
@@ -135,8 +143,9 @@ def build_application() -> Orchestrator:
 
     log.info("application_built", stage_count=len(all_stages))
 
-    return Orchestrator(
+    orchestrator = Orchestrator(
         repo=repo,
         capability=probe,
         stages=tuple(all_stages),
     )
+    return AppState(orchestrator=orchestrator, repo=repo, capability=probe)

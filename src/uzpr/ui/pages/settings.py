@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from uzpr.app import AppState
 
 import platformdirs
 import psutil
@@ -64,8 +67,9 @@ def _save_settings(settings: dict[str, Any]) -> None:
 class SettingsPage(ScrollArea):
     """Full settings page built with SettingCardGroup components."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, app_state: AppState, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._app = app_state
         self.setObjectName("settingsPage")
         self._settings = _load_settings()
         self._build_ui()

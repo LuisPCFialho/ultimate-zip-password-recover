@@ -50,6 +50,7 @@ except ImportError:
     _HAS_FIF = False
 
 if TYPE_CHECKING:
+    from uzpr.app import AppState
     from uzpr.persistence.models import SessionRow
 
 _COL_ARCHIVE = 0
@@ -128,8 +129,9 @@ class _PasswordCell(QWidget):
 class HistoryPage(QWidget):
     """Filterable history of all past recovery sessions."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, app_state: AppState, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._app = app_state
         self.setObjectName("historyPage")
 
         self._all_sessions: list[SessionRow] = []
@@ -210,10 +212,7 @@ class HistoryPage(QWidget):
 
     def _sync_load(self) -> None:
         try:
-            from uzpr.app import build_application  # lazy
-
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             sessions = repo._sync_list_sessions(None)
             sessions.sort(key=lambda s: s.updated_at, reverse=True)
             self._all_sessions = sessions
@@ -224,10 +223,7 @@ class HistoryPage(QWidget):
 
     async def _async_load(self) -> None:
         try:
-            from uzpr.app import build_application  # lazy
-
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             sessions = await repo.list_sessions()
             sessions.sort(key=lambda s: s.updated_at, reverse=True)
             self._all_sessions = sessions
@@ -316,10 +312,7 @@ class HistoryPage(QWidget):
 
     def _show_detail_dialog(self, session_id: str) -> None:
         try:
-            from uzpr.app import build_application  # lazy
-
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             session = repo._sync_get_session(session_id)
             stages = repo._sync_list_stages(session_id)
             password = self._password_map.get(session_id, "—")
@@ -396,10 +389,7 @@ class HistoryPage(QWidget):
             return
 
         try:
-            from uzpr.app import build_application  # lazy
-
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             repo._conn.execute("DELETE FROM sessions")
             repo._conn.execute("DELETE FROM stages")
             repo._conn.execute("DELETE FROM results")

@@ -48,6 +48,7 @@ except ImportError:
 from uzpr.ui.widgets.stage_card import StageCard
 
 if TYPE_CHECKING:
+    from uzpr.app import AppState
     from uzpr.core.stages.protocol import StageEvent
     from uzpr.ui.async_bridge import EventCoalescer
 
@@ -153,8 +154,9 @@ class _CandidateTicker(QWidget):
 class ActiveJobsPage(QWidget):
     """Live session dashboard."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, app_state: AppState, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._app = app_state
         self.setObjectName("activeJobsPage")
 
         self._session_id: str | None = None
@@ -296,6 +298,42 @@ class ActiveJobsPage(QWidget):
         self._elapsed_timer.start()
         coalescer.events_ready.connect(self._on_events)
         self._load_session_info(session_id)
+
+    def prepare_for_session(self, session_id: str) -> EventCoalescer:
+        """Reset the page, create a fresh coalescer and return it for the caller to wire the sink."""
+        from uzpr.ui.async_bridge import EventCoalescer as _EC
+
+        # Stop any existing timer and detach old coalescer
+        self._elapsed_timer.stop()
+        if hasattr(self, "_coalescer") and self._coalescer is not None:
+            try:
+                self._coalescer.events_ready.disconnect(self._on_events)
+            except RuntimeError:
+                pass
+
+        self._session_id = session_id
+        self._start_time = time.time()
+        self._session_status = "running"
+        self._found_password = None
+        self._found_banner.setVisible(False)
+        self._archive_label.setText("Loading…")
+        self._update_status_chip("running")
+        self._pause_btn.setEnabled(True)
+        self._resume_btn.setVisible(False)
+        self._pause_btn.setVisible(True)
+
+        # Reset stage cards
+        for card in self._stage_cards.values():
+            card.set_pending()
+
+        self._elapsed_timer.start(1000)
+
+        coalescer = _EC(self)
+        coalescer.events_ready.connect(self._on_events)
+        self._coalescer: _EC = coalescer
+
+        self._load_session_info(session_id)
+        return coalescer
 
     # ------------------------------------------------------------------
     # Qt lifecycle
@@ -462,10 +500,7 @@ class ActiveJobsPage(QWidget):
         if not self._found_password:
             return
         try:
-            from uzpr.app import build_application  # lazy
-
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             session = repo._sync_get_session(self._session_id)  # type: ignore[arg-type]
             archive_path = Path(session.archive_path)
             import pyzipper  # type: ignore[import-untyped]
@@ -516,10 +551,7 @@ class ActiveJobsPage(QWidget):
 
     def _load_session_info(self, session_id: str) -> None:
         try:
-            from uzpr.app import build_application  # lazy
-
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             session = repo._sync_get_session(session_id)
             self._archive_label.setText(Path(session.archive_path).name)
             stages = repo._sync_list_stages(session_id)

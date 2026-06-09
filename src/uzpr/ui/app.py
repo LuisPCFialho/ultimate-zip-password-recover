@@ -25,9 +25,11 @@ def run_gui(argv: list[str]) -> int:
     apply_theme(dark=None)
     load_fonts()
 
+    from uzpr.app import AppState, build_application
     from uzpr.ui.main_window import MainWindow
 
-    window = MainWindow()
+    app_state: AppState = build_application()
+    window = MainWindow(app_state)
     window.show()
 
     loop = qasync.QEventLoop(app)

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import contextlib
+import shutil
+import subprocess
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 from typing import Literal
@@ -48,6 +51,9 @@ _TOOL_PACKAGE: dict[str, str] = {
     "pp64": "john",
     "bkcrack": "bkcrack",
 }
+
+# URL for the standalone 7-Zip reduced binary (handles BCJ2 compression)
+_7ZR_URL = "https://www.7-zip.org/a/7zr.exe"
 
 
 # ---------------------------------------------------------------------------
@@ -188,24 +194,80 @@ async def _download(url: str, dest: Path) -> None:
     log.info("download_complete", dest=str(dest))
 
 
+async def _get_7zr_binary() -> Path:
+    """Return path to 7zr.exe, downloading it to user tools dir if needed.
+
+    7zr.exe is the standalone 7-Zip reduced binary that handles BCJ2-compressed
+    archives which py7zr cannot handle.
+    """
+    cached = _user_tools_dir() / "7zr.exe"
+    if cached.is_file():
+        return cached
+    log.info("downloading_7zr", url=_7ZR_URL)
+    await _download(_7ZR_URL, cached)
+    return cached
+
+
+def _extract_7z_with_binary(binary: Path, archive: Path, dest: Path) -> None:
+    """Extract a .7z archive using the 7zr.exe binary into a temp dir, then
+    strip the single top-level subdirectory (if any) and move contents to dest.
+    """
+    with tempfile.TemporaryDirectory() as tmp_str:
+        tmp = Path(tmp_str)
+        result = subprocess.run(
+            [str(binary), "x", str(archive), f"-o{tmp}", "-y"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"7zr extraction failed (rc={result.returncode}): {result.stderr.strip()}"
+            )
+        _move_stripping_single_top_dir(tmp, dest)
+
+
+def _move_stripping_single_top_dir(src: Path, dest: Path) -> None:
+    """Move contents of *src* into *dest*, stripping one level if src has a
+    single top-level directory (common in tool archives like hashcat-6.2.6/).
+    """
+    children = list(src.iterdir())
+    if len(children) == 1 and children[0].is_dir():
+        # Archive has a single top-level dir (e.g. hashcat-6.2.6/) — strip it
+        src = children[0]
+
+    dest.mkdir(parents=True, exist_ok=True)
+    for item in src.iterdir():
+        target = dest / item.name
+        if target.exists():
+            if target.is_dir():
+                shutil.rmtree(target)
+            else:
+                target.unlink()
+        shutil.move(str(item), str(target))
+
+
 async def _extract(archive: Path, dest: Path) -> None:
-    """Extract a .7z or .zip archive into *dest*."""
+    """Extract a .7z or .zip archive into *dest*, stripping the single
+    top-level subdirectory that tool packages typically contain.
+    """
+    import anyio
+
     suffix = archive.suffix.lower()
     if suffix == ".7z":
-        import anyio
-        import py7zr  # type: ignore[import-untyped]
+        binary = await _get_7zr_binary()
 
         def _do_extract() -> None:
-            with py7zr.SevenZipFile(archive, mode="r") as sz:
-                sz.extractall(path=dest)
+            _extract_7z_with_binary(binary, archive, dest)
 
         await anyio.to_thread.run_sync(_do_extract)
     elif suffix == ".zip":
-        import anyio
 
         def _do_unzip() -> None:
-            with zipfile.ZipFile(archive) as zf:
-                zf.extractall(dest)
+            with tempfile.TemporaryDirectory() as tmp_str:
+                tmp = Path(tmp_str)
+                with zipfile.ZipFile(archive) as zf:
+                    zf.extractall(tmp)
+                _move_stripping_single_top_dir(tmp, dest)
 
         await anyio.to_thread.run_sync(_do_unzip)
     else:

@@ -37,6 +37,7 @@ except ImportError:
 from uzpr.ui.widgets.drop_zone import DropZone
 
 if TYPE_CHECKING:
+    from uzpr.app import AppState
     from uzpr.persistence.models import SessionRow
 
 _FORMAT_LABELS: dict[str, str] = {
@@ -144,8 +145,9 @@ class HomePage(ScrollArea):
     file_selected: Signal = Signal(Path)
     session_clicked: Signal = Signal(str)  # session_id
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, app_state: AppState, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._app = app_state
         self.setObjectName("homePage")
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -264,10 +266,7 @@ class HomePage(ScrollArea):
 
     def _load_sessions_sync(self) -> None:
         try:
-            from uzpr.app import build_application  # lazy import
-
-            orchestrator = build_application()
-            repo = orchestrator._repo  # type: ignore[attr-defined]
+            repo = self._app.repo
             sessions = repo._sync_list_sessions(None)
             sessions.sort(key=lambda s: s.updated_at, reverse=True)
             self._populate_recent(sessions[:5])
@@ -277,11 +276,7 @@ class HomePage(ScrollArea):
 
     async def _async_load_sessions(self) -> None:
         try:
-            from uzpr.app import build_application  # lazy import
-
-            orchestrator = build_application()
-            repo = orchestrator._repo  # type: ignore[attr-defined]
-            sessions = await repo.list_sessions()
+            sessions = await self._app.repo.list_sessions()
             sessions.sort(key=lambda s: s.updated_at, reverse=True)
             self._populate_recent(sessions[:5])
             self._update_stats(sessions)

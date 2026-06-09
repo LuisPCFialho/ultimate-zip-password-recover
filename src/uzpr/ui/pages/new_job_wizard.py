@@ -49,6 +49,7 @@ except ImportError:
     from PySide6.QtWidgets import QPushButton as PushButton  # type: ignore[assignment]
 
 if TYPE_CHECKING:
+    from uzpr.app import AppState
     from uzpr.archive.detect import ArchiveInfo
 
 _BUDGET_OPTIONS: list[tuple[str, int]] = [
@@ -634,8 +635,9 @@ class NewJobWizardPage(QWidget):
 
     session_started: Signal = Signal(str)  # session_id
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, app_state: AppState, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._app = app_state
         self.setObjectName("newJobWizardPage")
 
         root = QVBoxLayout(self)
@@ -766,13 +768,13 @@ class NewJobWizardPage(QWidget):
         low_power: bool,
     ) -> None:
         try:
-            from uzpr.app import build_application  # lazy
             from uzpr.core.stages.protocol import Hints  # lazy
 
             hints = Hints(**hints_kw)  # type: ignore[arg-type]
-            app = build_application()
-            repo = app._repo  # type: ignore[attr-defined]
-            session_id = await repo.create_session(archive_info, hints, float(budget_s), low_power)
+            session_id = await self._app.repo.create_session(
+                archive_info, hints, float(budget_s), low_power
+            )
+            # Emit signal — MainWindow._on_session_started wires the orchestrator and navigates
             self.session_started.emit(session_id)
         except Exception as exc:
             if InfoBar is not None:

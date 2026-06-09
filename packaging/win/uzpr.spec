@@ -1,25 +1,39 @@
 # -*- mode: python ; coding: utf-8 -*-
+from __future__ import annotations
 from pathlib import Path
 
 block_cipher = None
 src = Path("src")
 
+# Only include data directories that actually exist at build time
+_candidate_datas = [
+    (str(src / "uzpr" / "ui" / "assets"), "uzpr/ui/assets"),
+    ("packaging/rules", "packaging/rules"),
+    ("packaging/wordlists", "packaging/wordlists"),
+]
+datas = [(s, d) for s, d in _candidate_datas if Path(s).exists()]
+
 a = Analysis(
     [str(src / "uzpr" / "__main__.py")],
     pathex=[str(src)],
     binaries=[],
-    datas=[
-        (str(src / "uzpr" / "ui" / "assets"), "uzpr/ui/assets"),
-        ("packaging/rules", "packaging/rules"),
-        ("packaging/wordlists", "packaging/wordlists"),
-    ],
+    datas=datas,
     hiddenimports=[
-        "qfluentwidgets",
-        "PySide6.QtSvg",
-        "PySide6.QtXml",
         "anyio._backends._asyncio",
         "anyio._backends._trio",
+        "PySide6.QtSvg",
+        "PySide6.QtXml",
+        "PySide6.QtOpenGL",
+        "qfluentwidgets",
         "blake3",
+        "structlog",
+        "platformdirs",
+        "httpx",
+        "sqlmodel",
+        "sqlalchemy",
+        "cryptography",
+        "pyzipper",
+        "rarfile",
         "py_cpuinfo",
     ],
     hookspath=[],
