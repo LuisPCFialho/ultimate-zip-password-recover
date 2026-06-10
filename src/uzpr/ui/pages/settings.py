@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 import platformdirs
 import psutil
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QWidget
+from PySide6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import (
     BodyLabel,
     ComboBoxSettingCard,
@@ -287,31 +287,58 @@ class SettingsPage(ScrollArea):
     # ------------------------------------------------------------------
 
     def _build_license_group(self, parent: QWidget) -> SettingCardGroup:
+        from uzpr.licensing.license import load_license
+
         group = SettingCardGroup("License", parent)
 
-        key = self._settings.get("license_key", "")
-        status_text = "Activated" if key else "No license — running in free mode"
-        self._license_label = BodyLabel(f"Status: {status_text}", group)
+        lic = load_license()
+        if lic is not None and lic.tier == "pro":
+            status_text = f"Pro — licensed to {lic.email}"
+        else:
+            status_text = "Free (no license)"
+        self._license_label = BodyLabel(f"License status: {status_text}", group)
 
         activate_card = PushSettingCard(
-            "Activate",
+            "Enter license key",
             FIF.CERTIFICATE,
             "License key",
-            "Enter your license key to unlock all features",
+            "Paste your UZPR license token to activate Pro",
             group,
         )
         activate_card.clicked.connect(self._on_activate)
 
+        kofi_card = PushSettingCard(
+            "Open Ko-fi",
+            FIF.HEART,
+            "Get a license",
+            "Support development and receive a license key",
+            group,
+        )
+        kofi_card.clicked.connect(self._on_open_kofi)
+
         group.addSettingCard(self._license_label)
         group.addSettingCard(activate_card)
+        group.addSettingCard(kofi_card)
         return group
 
     def _on_activate(self) -> None:
-        key, ok = QInputDialog.getText(self, "Activate license", "Enter license key:")
-        if ok and key.strip():
-            self._settings["license_key"] = key.strip()
-            self._license_label.setText("Status: Activated")
-            _save_settings(self._settings)
+        from uzpr.ui.nag import _show_license_entry  # reuse the shared entry dialog
+
+        _show_license_entry(self)
+        # Refresh status label after potential activation.
+        from uzpr.licensing.license import load_license
+
+        lic = load_license()
+        if lic is not None and lic.tier == "pro":
+            self._license_label.setText(f"License status: Pro — licensed to {lic.email}")
+        else:
+            self._license_label.setText("License status: Free (no license)")
+
+    def _on_open_kofi(self) -> None:
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        QDesktopServices.openUrl(QUrl("https://ko-fi.com/luispcfialho"))
 
     # ------------------------------------------------------------------
     # Updates

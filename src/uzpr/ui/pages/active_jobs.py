@@ -417,6 +417,13 @@ class ActiveJobsPage(QWidget):
                 position=InfoBarPosition.BOTTOM_RIGHT,
                 duration=8000,
             )
+        # Show donation nag (skipped for Pro users and if shown today already).
+        try:
+            from uzpr.ui.nag import maybe_show_nag
+
+            maybe_show_nag(parent=self)
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # Control buttons
