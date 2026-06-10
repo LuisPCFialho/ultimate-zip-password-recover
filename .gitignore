@@ -72,6 +72,9 @@ wordlists/cache/
 .env.*
 !.env.example
 secrets/
+vendor_private_key.pem
+private_key.pem
+.uzpr-vendor/
 
 # --- docs build ---
 docs/_build/

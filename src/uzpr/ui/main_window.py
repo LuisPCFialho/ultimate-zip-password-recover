@@ -14,6 +14,7 @@ from uzpr.ui.pages.history import HistoryPage
 from uzpr.ui.pages.home import HomePage
 from uzpr.ui.pages.new_job_wizard import NewJobWizardPage
 from uzpr.ui.pages.settings import SettingsPage
+from uzpr.ui.wizard import WizardWindow
 
 
 class MainWindow(FluentWindow):
@@ -38,7 +39,8 @@ class MainWindow(FluentWindow):
 
     def _init_navigation(self) -> None:
         self.home_page = HomePage(self.app_state, self)
-        self.new_job_page = NewJobWizardPage(self.app_state, self)
+        self.new_job_page = WizardWindow(self.app_state, self)
+        self.new_job_page.setObjectName("newJobWizardPage")
         self.active_page = ActiveJobsPage(self.app_state, self)
         self.history_page = HistoryPage(self.app_state, self)
         self.settings_page = SettingsPage(self.app_state, self)
