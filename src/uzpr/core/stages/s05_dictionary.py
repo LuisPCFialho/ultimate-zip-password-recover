@@ -36,6 +36,17 @@ _WORDLISTS: tuple[str, ...] = (
     "top10k.txt",
     "top100k.txt",
     "rockyou.txt",
+    # HIBP prevalence oracle: deeper fallback after rockyou exhausts.
+    "hibp_top1m.txt",
+)
+
+# pt-PT locale pack — inserted between top100k.txt and rockyou.txt when the
+# user's locale starts with "pt". Hand-curated and small, so they're cheap.
+_PT_PT_WORDLISTS: tuple[str, ...] = (
+    "pt-PT/pt_palavras.txt",
+    "pt-PT/pt_clubes.txt",
+    "pt-PT/pt_nomes.txt",
+    "pt-PT/pt_cidades.txt",
 )
 
 
@@ -51,6 +62,13 @@ def _locate_wordlist(name: str, work_dir: Path) -> Path | None:
     except Exception:
         pass
     return None
+
+
+def _ordered_wordlist_names(locale: str) -> tuple[str, ...]:
+    # Insert the pt-PT pack between top100k and rockyou for pt-* locales.
+    if locale.startswith("pt"):
+        return ("top10k.txt", "top100k.txt", *_PT_PT_WORDLISTS, "rockyou.txt")
+    return _WORDLISTS
 
 
 class DictionaryStage:
@@ -86,7 +104,7 @@ class DictionaryStage:
 
         # Resolve wordlists in prevalence order, keeping only those that exist.
         wordlists: list[tuple[str, Path]] = []
-        for name in _WORDLISTS:
+        for name in _ordered_wordlist_names(ctx.hints.locale):
             located = _locate_wordlist(name, ctx.work_dir)
             if located is not None:
                 wordlists.append((name, located))

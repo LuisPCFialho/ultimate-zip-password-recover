@@ -104,6 +104,7 @@ def build_application() -> AppState:
     S10 = _try_import("uzpr.core.stages.s10_prince", "PrinceStage")
     S11 = _try_import("uzpr.core.stages.s11_markov", "MarkovStage")
     S12 = _try_import("uzpr.core.stages.s12_bruteforce", "BruteForceStage")
+    S14 = _try_import("uzpr.core.stages.s14_combinator", "CombinatorStage")
     S13 = _try_import("uzpr.core.stages.s13_bkcrack", "BkcrackStage")
 
     # Build stage instances.  Stages that accept runner instances receive them
@@ -139,6 +140,7 @@ def build_application() -> AppState:
     _maybe_add(S10, hashcat_runner=hashcat_runner)
     _maybe_add(S11, hashcat_runner=hashcat_runner)
     _maybe_add(S12, hashcat_runner=hashcat_runner)
+    _maybe_add(S14, hashcat_runner=hashcat_runner)
     _maybe_add(S13, bkcrack_runner=bkcrack_runner)
 
     log.info("application_built", stage_count=len(all_stages))

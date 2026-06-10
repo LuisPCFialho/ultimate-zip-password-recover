@@ -20,3 +20,12 @@ in the installer; instead it is downloaded on first use by the UZPR runtime
 It powers Stage 5 of the attack cascade (Free and Pro tiers).  Developers
 can pre-populate it for local testing by running
 `python scripts/fetch_wordlists.py fetch rockyou --i-agree`.
+
+## hibp_top1m.txt
+
+A top-1 000 000 plaintext list ranked by real-world frequency, sourced from
+the SecLists project
+(`Passwords/Common-Credential-Exposure/10-million-password-list-top-1000000.txt`).
+Used as a deeper prevalence-ordered fallback after rockyou.txt in Stage 5.
+Fetched best-effort by `scripts/bootstrap_assets.py`; SecLists is distributed
+under the MIT License -- attribution per upstream notice.

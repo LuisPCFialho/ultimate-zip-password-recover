@@ -12,6 +12,7 @@ from uzpr.core.stages.protocol import (
     Stage,
     StageContext,
     StageOutcome,
+    StagePlan,
     StageResult,
     StageStats,
 )
@@ -21,6 +22,35 @@ from uzpr.util.logging import get_logger
 from uzpr.util.paths import session_work_dir
 
 log = get_logger(__name__)
+
+
+def _yield_density(plan: StagePlan) -> float:
+    """Probability-of-finding per second-of-work. Higher = schedule earlier."""
+    expected_seconds = plan.estimated_keyspace / max(plan.estimated_candidates_per_sec, 1.0)
+    return plan.prior_probability / max(expected_seconds, 0.001)
+
+
+def _sort_by_ev(
+    prepared: dict[int, StagePlan],
+    stages: tuple[Stage, ...],
+    gpu_available: bool,
+) -> list[Stage]:
+    """Order *stages* (those present in *prepared*) by descending yield density.
+
+    Stages that require a GPU when none is available are deprioritized to the end.
+    Stages absent from *prepared* (zero prior or already done) are excluded.
+    """
+    eligible = [s for s in stages if s.stage_no in prepared]
+    if not eligible:
+        return []
+
+    def sort_key(stage: Stage) -> tuple[int, float]:
+        plan = prepared[stage.stage_no]
+        gpu_penalty = 1 if (plan.requires_gpu and not gpu_available) else 0
+        # Negative density so higher density sorts first within each gpu_penalty bucket.
+        return (gpu_penalty, -_yield_density(plan))
+
+    return sorted(eligible, key=sort_key)
 
 
 class Orchestrator:
@@ -67,55 +97,30 @@ class Orchestrator:
         shared_potfile = work_dir / "uzpr.pot"
         tried_candidates_db = work_dir / "tried.db"
 
-        # Determine which stage_nos are still pending/paused.
-        remaining_stage_nos = [
-            s.stage_no
-            for s in self._stages
-            if row_by_no.get(s.stage_no) is None
-            or row_by_no[s.stage_no].status not in ("found", "exhausted", "skipped")
-        ]
+        # Locate (or derive) the hash file once up-front (shared by all stages).
+        archive_path = Path(session.archive_path)
+        hash_file = work_dir / f"{archive_path.stem}.hash"
+        if not hash_file.exists():
+            hash_file = await self._extract_hash(archive_path, work_dir)
 
-        for stage in self._stages:
-            row = row_by_no.get(stage.stage_no)
-            if row is not None and row.status in ("found", "exhausted", "skipped"):
-                log.debug(
-                    "stage_skipped_already_done",
-                    session_id=session_id,
-                    stage_no=stage.stage_no,
-                    status=row.status,
-                )
-                continue
+        # Compute hashcat mode once up-front.
+        hashcat_mode = session.hashcat_mode
+        if hashcat_mode is None and hash_file.exists() and hash_file.stat().st_size > 0:
+            try:
+                from uzpr.archive.detect import detect_archive
+                from uzpr.archive.hashcat_mode import hashcat_mode_for
 
-            # Allocate budget for all still-remaining stages.
-            budget_map = allocator.allocate(remaining_stage_nos)
-            budget = budget_map.get(stage.stage_no, 0.0)
+                archive_info = detect_archive(archive_path)
+                hashcat_mode = hashcat_mode_for(archive_info, hash_file)
+                if hashcat_mode is not None:
+                    await self._repo.update_session_hashcat_mode(session_id, hashcat_mode)
+                    log.info("hashcat_mode_detected", mode=hashcat_mode, session_id=session_id)
+            except Exception as exc:
+                log.warning("hashcat_mode_detection_failed", error=str(exc))
 
-            # Locate (or derive) the hash file.
-            archive_path = Path(session.archive_path)
-            hash_file = work_dir / f"{archive_path.stem}.hash"
-            if not hash_file.exists():
-                hash_file = await self._extract_hash(archive_path, work_dir)
-
-            # Compute hashcat mode from hash file if not yet stored in session.
-            hashcat_mode = session.hashcat_mode
-            if hashcat_mode is None and hash_file.exists() and hash_file.stat().st_size > 0:
-                try:
-                    from uzpr.archive.detect import detect_archive
-                    from uzpr.archive.hashcat_mode import hashcat_mode_for
-
-                    archive_info = detect_archive(archive_path)
-                    hashcat_mode = hashcat_mode_for(archive_info, hash_file)
-                    if hashcat_mode is not None:
-                        await self._repo.update_session_hashcat_mode(session_id, hashcat_mode)
-                        log.info("hashcat_mode_detected", mode=hashcat_mode, session_id=session_id)
-                except Exception as exc:
-                    log.warning("hashcat_mode_detection_failed", error=str(exc))
-
-            stage_id = f"{session_id}_{stage.stage_no}" if row is None else row.id
-
-            restore_token: str | None = row.restore_token if row is not None else None
-
-            ctx = StageContext(
+        # Build a probe context (budget=0 here; real budget is set per-run below).
+        def _make_ctx(stage: Stage, stage_id: str, restore_token: str | None, budget: float) -> StageContext:
+            return StageContext(
                 session_id=session_id,
                 stage_id=stage_id,
                 stage_no=stage.stage_no,
@@ -133,8 +138,32 @@ class Orchestrator:
                 restore_token=restore_token,
             )
 
-            # Let the stage decide whether to run (prior_probability == 0.0 → skip).
-            plan = await stage.prepare(ctx)
+        # Identify pending stages (not yet finished per DB).
+        pending: list[Stage] = []
+        stage_ids: dict[int, str] = {}
+        restore_tokens: dict[int, str | None] = {}
+        for stage in self._stages:
+            row = row_by_no.get(stage.stage_no)
+            if row is not None and row.status in ("found", "exhausted", "skipped"):
+                log.debug(
+                    "stage_skipped_already_done",
+                    session_id=session_id,
+                    stage_no=stage.stage_no,
+                    status=row.status,
+                )
+                continue
+            pending.append(stage)
+            stage_ids[stage.stage_no] = (
+                f"{session_id}_{stage.stage_no}" if row is None else row.id
+            )
+            restore_tokens[stage.stage_no] = row.restore_token if row is not None else None
+
+        # First pass: prepare every pending stage with a probe context to obtain
+        # its keyspace/cps/prior estimates.
+        prepared: dict[int, StagePlan] = {}
+        for stage in pending:
+            probe_ctx = _make_ctx(stage, stage_ids[stage.stage_no], restore_tokens[stage.stage_no], 0.0)
+            plan = await stage.prepare(probe_ctx)
             if plan.prior_probability == 0.0:
                 log.info(
                     "stage_skipped_zero_prior",
@@ -142,9 +171,40 @@ class Orchestrator:
                     stage_no=stage.stage_no,
                     name=stage.name,
                 )
-                await self._repo.update_stage(stage_id, status="skipped")
-                remaining_stage_nos = [n for n in remaining_stage_nos if n != stage.stage_no]
+                await self._repo.update_stage(stage_ids[stage.stage_no], status="skipped")
                 continue
+            prepared[stage.stage_no] = plan
+
+        # Sort by EV yield density. Fall back to numeric order if nothing eligible.
+        gpu_available = bool(self._capability.get_gpu_ids())
+        ordered = _sort_by_ev(prepared, tuple(pending), gpu_available)
+        if not ordered:
+            ordered = list(pending)
+
+        log.info(
+            "ev_schedule",
+            session_id=session_id,
+            order=[
+                (s.stage_no, round(_yield_density(prepared[s.stage_no]), 6))
+                for s in ordered
+                if s.stage_no in prepared
+            ],
+        )
+
+        remaining_stage_nos = [s.stage_no for s in ordered if s.stage_no in prepared]
+
+        for stage in ordered:
+            # Skip stages that were filtered out by zero-prior in the prepare pass.
+            if stage.stage_no not in prepared:
+                continue
+
+            # Allocate budget for all still-remaining stages.
+            budget_map = allocator.allocate(remaining_stage_nos)
+            budget = budget_map.get(stage.stage_no, 0.0)
+
+            stage_id = stage_ids[stage.stage_no]
+            restore_token = restore_tokens[stage.stage_no]
+            ctx = _make_ctx(stage, stage_id, restore_token, budget)
 
             # Mark running.
             await self._repo.update_stage(

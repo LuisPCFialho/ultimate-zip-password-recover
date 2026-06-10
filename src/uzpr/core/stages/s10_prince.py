@@ -59,13 +59,23 @@ class PrinceStage:
     async def prepare(self, ctx: StageContext) -> StagePlan:
         hints = ctx.hints
         has_content = bool(hints.stems or hints.first_names or hints.nicknames or hints.pet_names)
-        if not has_content:
+
+        # PRINCE is still valuable without hints: it catches multi-word
+        # passphrases ("summerLondon2021") that dict+rules miss. Only fully
+        # skip when neither a pp64 binary nor a background wordlist exists.
+        try:
+            find_tool("pp64")
+        except ToolNotFoundError:
+            return _SKIPPED_PLAN
+
+        top_dict = _find_top_dict(ctx.work_dir)
+        if not has_content and not top_dict.is_file():
             return _SKIPPED_PLAN
 
         return StagePlan(
             estimated_keyspace=10_000_000,
             estimated_candidates_per_sec=2_000_000.0,
-            prior_probability=0.06,
+            prior_probability=0.10 if has_content else 0.05,
             requires_gpu=True,
             can_resume=True,
         )
@@ -76,14 +86,6 @@ class PrinceStage:
 
         hints = ctx.hints
         has_content = bool(hints.stems or hints.first_names or hints.nicknames or hints.pet_names)
-        if not has_content:
-            return StageResult(
-                outcome=StageOutcome.SKIPPED,
-                password=None,
-                elapsed_seconds=0.0,
-                stats=self._stats,
-                restore_token=None,
-            )
 
         if ctx.hashcat_mode is None:
             return StageResult(
@@ -139,6 +141,7 @@ class PrinceStage:
                 elements_path=elements_path,
                 on_event=on_event,
                 stage=self,
+                hinted=has_content,
             )
 
         with anyio.move_on_after(ctx.budget_seconds):
@@ -187,6 +190,7 @@ async def _run_prince_pipeline(
     elements_path: Path,
     on_event: EventSink,
     stage: PrinceStage,
+    hinted: bool = True,
 ) -> StageResult:
     """Run pp64 piped into hashcat -a 0 - and return the StageResult."""
     import json
@@ -194,8 +198,19 @@ async def _run_prince_pipeline(
 
     from uzpr.core.stages.protocol import StageOutcome, StageResult, StageStats
 
-    # Launch pp64 reading from elements.txt
-    pp64_argv = [str(pp64_binary)]
+    # Launch pp64 reading from elements.txt.
+    # Hinted: broad length window. Unhinted: tighter 8-16 length focused on
+    # 2-3 word combinations (passphrase shape).
+    pp64_argv: list[str] = [str(pp64_binary)]
+    if hinted:
+        pp64_argv += ["--pw-min", "6", "--pw-max", "20"]
+    else:
+        pp64_argv += [
+            "--pw-min", "8",
+            "--pw-max", "16",
+            "--elem-cnt-min", "2",
+            "--elem-cnt-max", "3",
+        ]
     pp64_proc = await open_managed_process(
         pp64_argv,
         cwd=ctx.work_dir,

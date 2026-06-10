@@ -32,6 +32,13 @@ _OPTIONAL_ASSETS: list[tuple[str, str]] = [
         "pantagrule.popular.rule",
         "packaging/rules/pantagrule.popular.rule",
     ),
+    # HIBP prevalence oracle: a top-1M plaintext list ranked by real-world
+    # frequency. Bundled as a deeper fallback after rockyou.
+    (
+        "https://raw.githubusercontent.com/danielmiessler/SecLists/master/"
+        "Passwords/Common-Credential-Exposure/10-million-password-list-top-1000000.txt",
+        "packaging/wordlists/hibp_top1m.txt",
+    ),
 ]
 
 
